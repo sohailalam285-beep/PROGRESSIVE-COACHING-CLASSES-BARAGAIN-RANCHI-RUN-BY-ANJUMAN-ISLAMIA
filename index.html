@@ -16,12 +16,13 @@
         .login-btn { background: #2c3e50; color: white; }
         .add-btn { background: #27ae60; color: white; display: none; margin: 10px 0; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 1400px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 1450px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 12px; }
         th { background: #34495e; color: white; }
         .paid { background: #d4edda; color: #155724; cursor: pointer; }
         .unpaid { background: #f8d7da; color: #721c24; cursor: pointer; }
-        .send-sms { background: #25D366; color: white; padding: 3px 6px; border-radius: 4px; text-decoration: none; font-size: 10px; display: block; margin-top: 4px; font-weight: bold; }
+        .date-text { font-size: 10px; color: #555; display: block; margin-top: 2px; font-weight: normal; }
+        .send-sms { background: #25D366; color: white; padding: 2px 5px; border-radius: 4px; text-decoration: none; font-size: 9px; display: inline-block; margin-top: 5px; }
         .total-row { background: #eee; font-weight: bold; }
     </style>
 </head>
@@ -66,7 +67,8 @@
 <script>
     let admin = false;
     let months = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"];
-    let data = JSON.parse(localStorage.getItem('coaching_v3')) || [];
+    // Using a new storage key to avoid conflicts with old structure
+    let data = JSON.parse(localStorage.getItem('coaching_v4_date')) || [];
 
     function login() {
         if(prompt("Password:") === "admin123") {
@@ -85,16 +87,18 @@
                 <td>${s.r}</td><td><b>${s.n}</b></td><td>${s.p}</td><td>${s.c}</td>
                 ${months.map(m => {
                     let isPaid = s.f[m].s === 'Paid';
-                    let waMsg = `Hello ${s.n}, Aapki ${m} month ki fees Progressive Coaching Classes mein jama ho gayi hai. Shukriya!`;
+                    let pDate = s.f[m].d || ''; // Payment date
+                    let waMsg = `Hello ${s.n}, Aapki ${m} month ki fees Progressive Coaching Classes mein jama ho gayi hai on ${pDate}. Shukriya!`;
                     let waLink = `https://wa.me/91${s.p}?text=${encodeURIComponent(waMsg)}`;
                     
                     return `<td class="${isPaid ? 'paid' : 'unpaid'}">
-                        <div onclick="pay(${idx},'${m}')">${s.f[m].s}</div>
-                        ${isPaid ? `<a href="${waLink}" target="_blank" class="send-sms">Send WA</a>` : ''}
+                        <div onclick="pay(${idx},'${m}')" style="font-weight:bold;">${s.f[m].s}</div>
+                        ${isPaid ? `<span class="date-text">${pDate}</span>` : ''}
+                        ${isPaid ? `<a href="${waLink}" target="_blank" class="send-sms">WhatsApp</a>` : ''}
                     </td>`;
                 }).join('')}
                 <td class="adm" style="display:${admin?'table-cell':'none'}">
-                    <button onclick="del(${idx})" style="background:red;color:white;border:none;">Del</button>
+                    <button onclick="del(${idx})" style="background:red;color:white;border:none;cursor:pointer;">Del</button>
                 </td>
             </tr>`;
         });
@@ -111,16 +115,27 @@
             let fees = {};
             months.forEach(m => fees[m] = {s:'Unpaid', d:''});
             data.push({n, r, p, c, f:fees});
-            localStorage.setItem('coaching_v3', JSON.stringify(data));
-            show();
+            saveData();
         }
     }
 
     function pay(idx, m) {
-        if(!admin) return;
+        if(!admin) return alert("Pehle Admin Login karein!");
         let s = data[idx].f[m];
-        s.s = (s.s === 'Paid') ? 'Unpaid' : 'Paid';
-        localStorage.setItem('coaching_v3', JSON.stringify(data));
+        if (s.s === 'Unpaid') {
+            s.s = 'Paid';
+            // Current date add ho rahi hai (DD/MM/YYYY format)
+            let today = new Date();
+            s.d = today.toLocaleDateString('en-GB'); 
+        } else {
+            s.s = 'Unpaid';
+            s.d = '';
+        }
+        saveData();
+    }
+
+    function saveData() {
+        localStorage.setItem('coaching_v4_date', JSON.stringify(data));
         show();
     }
 
@@ -137,7 +152,7 @@
         document.querySelectorAll('#myData tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(v) ? '' : 'none');
     }
 
-    function del(idx) { if(confirm("Delete?")) { data.splice(idx, 1); localStorage.setItem('coaching_v3', JSON.stringify(data)); show(); } }
+    function del(idx) { if(confirm("Delete student record?")) { data.splice(idx, 1); saveData(); } }
 
     window.onload = show;
 </script>
