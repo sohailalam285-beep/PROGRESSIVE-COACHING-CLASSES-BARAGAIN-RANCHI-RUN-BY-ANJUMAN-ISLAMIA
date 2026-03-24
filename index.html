@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCC Baragain - Live Portal</title>
+    <title>PCC Baragain - Professional Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a2a3a; --accent: #3498db; --success: #27ae60; }
@@ -19,26 +19,28 @@
         .sync-status { text-align: center; font-size: 13px; color: #7f8c8d; margin-bottom: 10px; font-weight: bold; }
         .table-box { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; min-width: 1600px; }
-        th, td { border: 1px solid #eee; padding: 12px; text-align: center; font-size: 13px; }
+        th, td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 13px; }
         th { background: #f8f9fa; position: sticky; top: 0; }
         .paid { background: #e6fffa; color: #2c7a7b; font-weight: bold; }
         .unpaid { background: #fff5f5; color: #c53030; }
+        .date-text { font-size: 10px; color: #666; display: block; margin-top: 2px; }
+        .total-row { background: #1a2a3a; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>Progressive Coaching Classes</h1>
-    <p>Baragain, Ranchi | Live Cloud Database</p>
+    <p>Baragain, Ranchi | Managed by Sohail Alam</p>
 </header>
 
 <div class="container">
-    <div id="syncStatus" class="sync-status"><i class="fas fa-cloud"></i> Connecting to Cloud...</div>
+    <div id="syncStatus" class="sync-status"><i class="fas fa-cloud"></i> Connecting...</div>
     <div class="controls">
         <button id="authBtn" class="btn login-btn" onclick="toggleLogin()">Admin Login</button>
-        <input type="text" id="searchBox" onkeyup="filterTable()" placeholder="Roll ya Naam search karein...">
-        <button id="addBtn" class="btn add-btn" onclick="addNewStudent()">+ Naya Student</button>
-        <button id="saveBtn" class="btn save-btn" onclick="saveToCloud()">Save to Cloud (Live)</button>
+        <input type="text" id="searchBox" onkeyup="filterTable()" placeholder="Search Student...">
+        <button id="addBtn" class="btn add-btn" onclick="addNewStudent()">+ Add Student</button>
+        <button id="saveBtn" class="btn save-btn" onclick="saveToCloud()">Save Changes (Cloud)</button>
     </div>
 
     <div class="table-box">
@@ -50,12 +52,12 @@
                 </tr>
             </thead>
             <tbody id="studentData"></tbody>
+            <tfoot id="totalRow"></tfoot>
         </table>
     </div>
 </div>
 
 <script>
-    // Maine aapka link yahan pehle se daal diya hai
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJnUsOkYbr7u6wS7rL99O3U_tE3X-Uv9G0-uN-yF6kU5-I5E6_zI6eE/exec"; 
     
     let isAdmin = false;
@@ -72,30 +74,24 @@
                     fees: row[4] ? JSON.parse(row[4]) : {}
                 }));
             }
-            document.getElementById('syncStatus').innerHTML = "<span style='color:green'><i class='fas fa-check-circle'></i> Data Live Hai!</span>";
+            document.getElementById('syncStatus').innerHTML = "<span style='color:green'>● Live</span>";
             renderTable();
-        } catch (e) {
-            document.getElementById('syncStatus').innerText = "Data Load Ho Raha Hai...";
-        }
+        } catch (e) { document.getElementById('syncStatus').innerText = "Offline"; }
     }
 
     async function saveToCloud() {
         const btn = document.getElementById('saveBtn');
         btn.innerText = "Saving...";
         try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(students)
-            });
-            alert("Data Google Sheet mein save ho gaya!");
-            btn.innerText = "Save to Cloud (Live)";
-        } catch (e) { alert("Save Error!"); }
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(students) });
+            alert("Data Saved!");
+            btn.innerText = "Save Changes (Cloud)";
+        } catch (e) { alert("Error!"); }
     }
 
     function toggleLogin() {
         if (!isAdmin) {
-            if (prompt("Admin Password:") === "admin123") {
+            if (prompt("Password:") === "admin123") {
                 isAdmin = true;
                 document.getElementById('authBtn').innerText = "Logout";
                 document.getElementById('addBtn').style.display = "inline-block";
@@ -111,32 +107,47 @@
             <tr>
                 <td>${s.roll}</td><td><strong>${s.name}</strong></td><td>${s.phone}</td><td>${s.class}</td>
                 ${months.map(m => {
-                    const f = s.fees[m] || {status: 'Unpaid', amount: 0};
+                    const f = s.fees[m] || {status: 'Unpaid', amount: 0, date: ''};
                     return `<td class="${f.status === 'Paid' ? 'paid' : 'unpaid'}" onclick="handleFee(${idx},'${m}')" style="cursor:pointer">
-                        ${f.status}<br><small>${f.amount > 0 ? '₹'+f.amount : ''}</small>
+                        ${f.status} ${f.amount > 0 ? '₹'+f.amount : ''}
+                        ${f.date ? `<span class="date-text">${f.date}</span>` : ''}
                     </td>`;
                 }).join('')}
             </tr>
         `).join('');
+        updateTotals();
     }
 
     function handleFee(idx, m) {
         if (!isAdmin) return;
         if (!students[idx].fees) students[idx].fees = {};
-        if (!students[idx].fees[m]) students[idx].fees[m] = {status: 'Unpaid', amount: 0};
-        const f = students[idx].fees[m];
+        const f = students[idx].fees[m] || {status: 'Unpaid', amount: 0, date: ''};
+        
         if (f.status === 'Unpaid') {
             const amt = prompt("Amount:", "500");
-            if (amt) { f.status = 'Paid'; f.amount = amt; }
-        } else { f.status = 'Unpaid'; f.amount = 0; }
+            if (amt) {
+                const today = new Date().toLocaleDateString('en-GB'); // DD/MM/YYYY format
+                students[idx].fees[m] = { status: 'Paid', amount: Number(amt), date: today };
+            }
+        } else {
+            if(confirm("Mark as Unpaid?")) students[idx].fees[m] = { status: 'Unpaid', amount: 0, date: '' };
+        }
         renderTable();
+    }
+
+    function updateTotals() {
+        let html = `<tr class="total-row"><td colspan="4">TOTAL COLLECTION</td>`;
+        months.forEach(m => {
+            let colTotal = students.reduce((sum, s) => sum + (s.fees[m]?.amount || 0), 0);
+            html += `<td>₹${colTotal}</td>`;
+        });
+        document.getElementById('totalRow').innerHTML = html + `</tr>`;
     }
 
     function addNewStudent() {
         const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("Phone:"), c = prompt("Class:");
         if (n && r) {
-            let f = {}; months.forEach(m => f[m] = {status:'Unpaid', amount:0});
-            students.push({roll:r, name:n, phone:p, class:c, fees:f});
+            students.push({roll:r, name:n, phone:p, class:c, fees:{}});
             renderTable();
         }
     }
