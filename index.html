@@ -3,38 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Coaching Classes - Fee Record</title>
+    <title>Progressive Coaching - Admin Portal</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #eef2f3; padding: 20px; }
         .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 8px solid #2c3e50; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #f1f1f1; padding-bottom: 15px; }
-        .header h1 { color: #2c3e50; margin: 0; font-size: 26px; }
-        .header p { color: #7f8c8d; font-weight: bold; margin: 5px 0; }
+        .header { text-align: center; margin-bottom: 20px; }
         
-        .controls { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; background: #f9f9f9; padding: 15px; border-radius: 8px; }
-        .search-box input { padding: 12px; width: 280px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .controls { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 8px; align-items: center; }
+        .search-box input { padding: 10px; width: 250px; border: 1px solid #ddd; border-radius: 6px; }
         
-        .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
-        .add-btn { background: #27ae60; }
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
+        .add-btn { background: #27ae60; display: none; } /* Hide by default */
+        .login-btn { background: #2c3e50; }
         .print-btn { background: #3498db; }
-        .btn:hover { opacity: 0.8; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-        th { background-color: #34495e; color: white; font-size: 14px; }
+        th { background-color: #34495e; color: white; }
         
-        .status-btn { cursor: pointer; padding: 8px; border-radius: 5px; font-weight: bold; display: block; margin-bottom: 4px; border: 1px solid transparent; }
-        .paid { background: #d4edda; color: #155724; border-color: #c3e6cb; }
-        .unpaid { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-        .pay-date { display: block; font-size: 10px; color: #666; font-weight: normal; margin-top: 2px; }
+        .status-btn { padding: 6px; border-radius: 4px; font-weight: bold; display: block; margin-bottom: 4px; border: 1px solid transparent; }
+        .paid { background: #d4edda; color: #155724; }
+        .unpaid { background: #f8d7da; color: #721c24; }
+        .admin-only { display: none; } /* Hide edit options */
 
-        .delete-btn { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-
-        @media print {
-            .controls, .delete-btn, th:last-child, td:last-child { display: none; }
-            body { padding: 0; background: white; }
-            .container { box-shadow: none; border: none; width: 100%; max-width: 100%; }
-        }
+        .delete-btn { background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -43,15 +35,14 @@
     <div class="header">
         <h1>Progressive Coaching Classes, Baragain</h1>
         <p>Run by: Anjuman Islamia Baragain, Ranchi</p>
+        <button id="authBtn" class="btn login-btn" onclick="handleAuth()">Admin Login</button>
     </div>
     
     <div class="controls">
-        <div class="search-box">
-            <input type="text" id="searchInput" onkeyup="searchStudent()" placeholder="Search Student Name or Roll No...">
-        </div>
+        <input type="text" id="searchInput" onkeyup="searchStudent()" placeholder="Search Name or Roll No..." class="search-box">
         <div>
-            <button class="btn add-btn" onclick="addStudent()">+ Add New Student</button>
-            <button class="btn print-btn" onclick="window.print()">Print Report</button>
+            <button id="addBtn" class="btn add-btn" onclick="addStudent()">+ Add Student</button>
+            <button class="btn print-btn" onclick="window.print()">Print</button>
         </div>
     </div>
 
@@ -59,12 +50,12 @@
         <thead>
             <tr>
                 <th>Roll No</th>
-                <th>Student Name</th>
+                <th>Name</th>
                 <th>Class</th>
-                <th>January</th>
-                <th>February</th>
-                <th>March</th>
-                <th>Action</th>
+                <th>Jan</th>
+                <th>Feb</th>
+                <th>Mar</th>
+                <th class="admin-only">Action</th>
             </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -72,18 +63,37 @@
 </div>
 
 <script>
-    // Local Storage se data uthana ya empty array set karna
+    let isAdmin = false;
+    const ADMIN_PASSWORD = "admin123"; // Aap ise yahan badal sakte hain
+
     let students = JSON.parse(localStorage.getItem('coachingData')) || [
-        { roll: "101", name: "Anas", class: "10th", fees: { Jan: {status: "Unpaid", date: ""}, Feb: {status: "Unpaid", date: ""}, Mar: {status: "Unpaid", date: ""} } },
-        { roll: "102", name: "Laiba", class: "8th", fees: { Jan: {status: "Unpaid", date: ""}, Feb: {status: "Unpaid", date: ""}, Mar: {status: "Unpaid", date: ""} } }
+        { roll: "101", name: "Anas", class: "10th", fees: { Jan: {status: "Unpaid", date: ""}, Feb: {status: "Unpaid", date: ""}, Mar: {status: "Unpaid", date: ""} } }
     ];
 
-    function saveData() {
-        localStorage.setItem('coachingData', JSON.stringify(students));
+    function handleAuth() {
+        if (!isAdmin) {
+            let pass = prompt("Admin Password daalein:");
+            if (pass === ADMIN_PASSWORD) {
+                isAdmin = true;
+                document.getElementById('authBtn').innerText = "Logout";
+                document.getElementById('authBtn').style.background = "#e67e22";
+                alert("Welcome Admin! Ab aap edit kar sakte hain.");
+            } else {
+                alert("Galat Password!");
+            }
+        } else {
+            isAdmin = false;
+            document.getElementById('authBtn').innerText = "Admin Login";
+            document.getElementById('authBtn').style.background = "#2c3e50";
+        }
         loadData();
     }
 
     function loadData() {
+        // Edit options show/hide karna
+        document.getElementById('addBtn').style.display = isAdmin ? 'inline-block' : 'none';
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'table-cell' : 'none');
+
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = students.map((s, sIndex) => `
             <tr>
@@ -92,67 +102,58 @@
                 <td>${s.class}</td>
                 ${['Jan', 'Feb', 'Mar'].map(month => `
                     <td>
-                        <div class="status-btn ${s.fees[month].status.toLowerCase()}" onclick="toggleFee(${sIndex}, '${month}')">
+                        <div class="status-btn ${s.fees[month].status.toLowerCase()}" 
+                             style="cursor: ${isAdmin ? 'pointer' : 'default'}"
+                             onclick="${isAdmin ? `toggleFee(${sIndex}, '${month}')` : ''}">
                             ${s.fees[month].status}
-                            <span class="pay-date">${s.fees[month].date}</span>
+                            <div style="font-size:10px">${s.fees[month].date}</div>
                         </div>
                     </td>
                 `).join('')}
-                <td><button class="delete-btn" onclick="deleteStudent(${sIndex})">Remove</button></td>
+                <td class="admin-only">
+                    <button class="delete-btn" onclick="deleteStudent(${sIndex})">Remove</button>
+                </td>
             </tr>
         `).join('');
     }
 
+    // ... (toggleFee, addStudent, deleteStudent, searchStudent functions same rahenge)
     function toggleFee(index, month) {
-        let currentStatus = students[index].fees[month].status;
-        if (currentStatus === "Unpaid") {
-            students[index].fees[month].status = "Paid";
-            let today = new Date();
-            students[index].fees[month].date = today.getDate().toString().padStart(2, '0') + '-' + 
-                                               (today.getMonth() + 1).toString().padStart(2, '0') + '-' + 
-                                               today.getFullYear();
+        if(!isAdmin) return;
+        let s = students[index].fees[month];
+        if (s.status === "Unpaid") {
+            s.status = "Paid";
+            s.date = new Date().toLocaleDateString('en-GB');
         } else {
-            students[index].fees[month].status = "Unpaid";
-            students[index].fees[month].date = "";
+            s.status = "Unpaid";
+            s.date = "";
         }
         saveData();
     }
 
+    function saveData() {
+        localStorage.setItem('coachingData', JSON.stringify(students));
+        loadData();
+    }
+
     function addStudent() {
-        let name = prompt("Student Name:");
-        let roll = prompt("Roll Number:");
-        let cls = prompt("Class (e.g. 10th):");
-        
-        if(name && roll) {
-            students.push({ 
-                roll: roll, name: name, class: cls, 
-                fees: { 
-                    Jan: {status: "Unpaid", date: ""}, 
-                    Feb: {status: "Unpaid", date: ""}, 
-                    Mar: {status: "Unpaid", date: ""} 
-                } 
-            });
+        let n = prompt("Name:"), r = prompt("Roll:"), c = prompt("Class:");
+        if(n && r) {
+            students.push({ roll: r, name: n, class: c, fees: { Jan: {status: "Unpaid", date: ""}, Feb: {status: "Unpaid", date: ""}, Mar: {status: "Unpaid", date: ""} } });
             saveData();
         }
     }
 
-    function deleteStudent(index) {
-        if(confirm("Kya aap is student ka record delete karna chahte hain?")) {
-            students.splice(index, 1);
-            saveData();
-        }
+    function deleteStudent(i) {
+        if(confirm("Delete?")) { students.splice(i, 1); saveData(); }
     }
 
     function searchStudent() {
-        let input = document.getElementById('searchInput').value.toLowerCase();
-        let rows = document.querySelectorAll('#tableBody tr');
-        rows.forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(input) ? '' : 'none';
-        });
+        let val = document.getElementById('searchInput').value.toLowerCase();
+        document.querySelectorAll('#tableBody tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(val) ? '' : 'none');
     }
 
     window.onload = loadData;
 </script>
-
 </body>
 </html>
