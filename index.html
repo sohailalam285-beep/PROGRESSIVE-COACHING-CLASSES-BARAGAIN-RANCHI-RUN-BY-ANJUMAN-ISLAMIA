@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCC Baragain - Smart Portal</title>
+    <title>PCC Baragain - Smart Cloud System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a2a3a; --accent: #3498db; --success: #27ae60; }
@@ -29,12 +29,10 @@
     </style>
 </head>
 <body>
-
 <header>
     <h1>Progressive Coaching Classes</h1>
     <p>Baragain, Ranchi | Smart Cloud System</p>
 </header>
-
 <div class="container">
     <div id="syncStatus" class="sync-status">🔄 Connecting to Cloud...</div>
     <div class="controls">
@@ -43,7 +41,6 @@
         <button id="addBtn" class="btn add-btn" onclick="addNewStudent()"><i class="fas fa-plus"></i> Naya Student</button>
         <button id="saveBtn" class="btn save-btn" onclick="saveToCloud()"><i class="fas fa-cloud-upload-alt"></i> Save & Sync</button>
     </div>
-
     <div class="table-box">
         <table>
             <thead>
@@ -57,15 +54,11 @@
         </table>
     </div>
 </div>
-
 <script>
-    // --- APNA LINK YAHAN HAI ---
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJnUsOkYbr7u6wS7rL99O3U_tE3X-Uv9G0-uN-yF6kU5-I5E6_zI6eE/exec"; 
-    
     let isAdmin = false;
     let students = [];
     const months = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"];
-
     async function loadData() {
         try {
             const response = await fetch(SCRIPT_URL);
@@ -80,14 +73,12 @@
             renderTable();
         } catch (e) { document.getElementById('syncStatus').innerText = "❌ Offline/Error"; }
     }
-
     function renderTable() {
         const tbody = document.getElementById('studentData');
         tbody.innerHTML = students.map((s, idx) => {
             let rowHtml = `<tr>
                 <td><a href="https://wa.me/91${s.phone}?text=${encodeURIComponent('PCC Baragain: Student '+s.name+' ki fees update ho gayi hai.')}" target="_blank" class="wa-btn"><i class="fab fa-whatsapp"></i> Notify</a></td>
                 <td>${s.roll}</td><td><strong>${s.name}</strong></td><td>${s.phone}</td><td>${s.class}</td>`;
-            
             months.forEach(m => {
                 const f = s.fees[m] || {status: 'Unpaid', amount: 0, date: ''};
                 rowHtml += `<td class="${f.status === 'Paid' ? 'paid' : 'unpaid'}" onclick="handleFee(${idx},'${m}')" style="cursor:pointer">
@@ -99,21 +90,17 @@
         }).join('');
         updateTotals();
     }
-
     function handleFee(idx, m) {
         if (!isAdmin) return;
         if (!students[idx].fees) students[idx].fees = {};
         const f = students[idx].fees[m] || {status: 'Unpaid', amount: 0, date: ''};
-        
         if (f.status === 'Unpaid') {
             const amt = prompt("Fees Amount daalein:", "500");
             if (amt) {
-                const today = new Date().toLocaleDateString('en-GB'); // Auto Date DD/MM/YYYY
+                const today = new Date().toLocaleDateString('en-GB');
                 students[idx].fees[m] = { status: 'Paid', amount: Number(amt), date: today };
-                
-                // Auto WhatsApp Message Alert
-                if(confirm("Kya aap WhatsApp par notification bhejna chahte hain?")) {
-                    const msg = `PCC Baragain: Dear Parent, Student ${students[idx].name} ki ${m} mahine ki fees ₹${amt} jama ho gayi hai. Date: ${today}. Thank you!`;
+                if(confirm("WhatsApp par notification bhejrein?")) {
+                    const msg = `PCC Baragain: Dear Parent, Student ${students[idx].name} ki ${m} mahine ki fees ₹${amt} jama ho gayi hai. Date: ${today}. Shukriya!`;
                     window.open(`https://wa.me/91${students[idx].phone}?text=${encodeURIComponent(msg)}`, '_blank');
                 }
             }
@@ -122,7 +109,6 @@
         }
         renderTable();
     }
-
     function updateTotals() {
         let html = `<tr class="total-row"><td colspan="5">MONTHLY TOTAL COLLECTION</td>`;
         months.forEach(m => {
@@ -131,17 +117,15 @@
         });
         document.getElementById('totalRow').innerHTML = html + `</tr>`;
     }
-
     async function saveToCloud() {
         const btn = document.getElementById('saveBtn');
         btn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Saving...";
         try {
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(students) });
-            alert("Success! Data Google Sheet mein save ho gaya.");
+            alert("Mubarak! Data Google Sheet mein save ho gaya.");
             btn.innerHTML = "<i class='fas fa-cloud-upload-alt'></i> Save & Sync";
         } catch (e) { alert("Save Failed! Net check karein."); }
     }
-
     function toggleLogin() {
         if (!isAdmin) {
             if (prompt("Admin Password daalein:") === "admin123") {
@@ -153,7 +137,6 @@
             }
         } else { location.reload(); }
     }
-
     function addNewStudent() {
         const n = prompt("Bache ka Naam:"), r = prompt("Roll No:"), p = prompt("Phone (WhatsApp):"), c = prompt("Class:");
         if (n && r) {
@@ -161,14 +144,12 @@
             renderTable();
         }
     }
-
     function filterTable() {
         const val = document.getElementById('searchBox').value.toLowerCase();
         document.querySelectorAll('#studentData tr').forEach(row => {
             row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none';
         });
     }
-
     window.onload = loadData;
 </script>
 </body>
