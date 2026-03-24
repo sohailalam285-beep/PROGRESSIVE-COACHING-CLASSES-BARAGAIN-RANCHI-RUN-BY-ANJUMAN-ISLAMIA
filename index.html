@@ -3,41 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Coaching - Finance Portal v2</title>
+    <title>Progressive Coaching - Final Admin Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f0f2f5; }
-        header { background: #1a2a3a; color: white; padding: 25px; text-align: center; }
-        .container { padding: 15px; max-width: 98%; margin: auto; background: white; border-radius: 12px; margin-top: 15px; }
-        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 200px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        header { background: #1a2a3a; color: white; padding: 20px; text-align: center; }
+        .container { padding: 15px; max-width: 98%; margin: auto; background: white; border-radius: 12px; margin-top: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 220px; }
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 13px; }
         .login-btn { background: #34495e; color: white; }
         .add-btn { background: #27ae60; color: white; display: none; }
+        .backup-btn { background: #3498db; color: white; }
+        .restore-btn { background: #8e44ad; color: white; }
         
-        .table-box { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 1650px; }
+        .table-box { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1600px; }
         th, td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 12px; }
-        th { background: #f8f9fa; position: sticky; top: 0; }
+        th { background: #f8f9fa; color: #333; position: sticky; top: 0; }
         
-        /* Paid cell styling */
-        .paid { background: #e6fffa; color: #2c7a7b; font-weight: bold; border-radius: 4px; }
-        .unpaid { background: #fff5f5; color: #c53030; border-radius: 4px; }
-        
-        .info-container { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .amt-text { font-size: 11px; color: #1a202c; }
-        .date-text { font-size: 9px; color: #718096; font-weight: normal; }
-        
-        .wa-icon { color: #25D366; font-size: 16px; text-decoration: none; margin-top: 2px; }
+        .paid { background: #e6fffa; color: #2c7a7b; font-weight: bold; }
+        .unpaid { background: #fff5f5; color: #c53030; }
+        .info-box { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .amt-tag { font-size: 11px; color: #1a202c; }
+        .date-tag { font-size: 9px; color: #718096; font-weight: normal; }
+        .wa-link { color: #25D366; font-size: 16px; margin-top: 2px; }
         .total-row { background: #edf2f7; font-weight: bold; }
-        .admin-only { display: none; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>Progressive Coaching Classes</h1>
-    <p>Professional Fee Records with Date & Amount</p>
+    <p>Admin Control Panel | Baragain, Ranchi</p>
 </header>
 
 <div class="container">
@@ -45,15 +43,18 @@
         <button id="authBtn" class="btn login-btn" onclick="toggleLogin()">Admin Login</button>
         <input type="text" id="searchBox" onkeyup="filterTable()" placeholder="Search Student/Class...">
         <button id="addBtn" class="btn add-btn" onclick="addNewStudent()">+ Add Student</button>
+        <button class="btn backup-btn" onclick="exportData()"><i class="fas fa-download"></i> Backup</button>
+        <button class="btn restore-btn" onclick="importData()"><i class="fas fa-upload"></i> Restore</button>
+        <input type="file" id="fileInput" style="display:none" onchange="processFile(event)">
     </div>
 
     <div class="table-box">
         <table>
             <thead>
                 <tr>
-                    <th>Roll</th><th>Student Name</th><th>Phone</th><th>Class</th>
+                    <th>Roll</th><th>Name</th><th>Phone</th><th>Class</th>
                     <th>Apr</th><th>May</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th>
-                    <th class="admin-only">Action</th>
+                    <th id="actHead" style="display:none">Action</th>
                 </tr>
             </thead>
             <tbody id="studentData"></tbody>
@@ -65,7 +66,7 @@
 <script>
     let isAdmin = false;
     const months = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"];
-    let students = JSON.parse(localStorage.getItem('pcc_finance_v2_date')) || [];
+    let students = JSON.parse(localStorage.getItem('pcc_final_sync_v1')) || [];
 
     function toggleLogin() {
         if (!isAdmin) {
@@ -73,12 +74,14 @@
                 isAdmin = true;
                 document.getElementById('authBtn').innerText = "Logout";
                 document.getElementById('addBtn').style.display = "inline-block";
+                document.getElementById('actHead').style.display = "table-cell";
                 renderTable();
             }
         } else {
             isAdmin = false;
             document.getElementById('authBtn').innerText = "Admin Login";
             document.getElementById('addBtn').style.display = "none";
+            document.getElementById('actHead').style.display = "none";
             renderTable();
         }
     }
@@ -94,20 +97,19 @@
                 ${months.map(m => {
                     const f = s.fees[m];
                     const isPaid = f.status === 'Paid';
-                    const msg = `PCC: Hello ${s.name}, Aapki ${m} mahine ki fee ₹${f.amount} jama ho gayi hai on ${f.date}. Shukriya!`;
+                    const msg = `PCC: Hello ${s.name}, Aapki ${m} ki fee ₹${f.amount} jama ho gayi hai (${f.date}).`;
                     const waLink = `https://wa.me/91${s.phone}?text=${encodeURIComponent(msg)}`;
                     
                     return `<td class="${isPaid ? 'paid' : 'unpaid'}" onclick="handleFeeClick(${idx}, '${m}')" style="cursor:pointer">
-                        <div class="info-container">
+                        <div class="info-box">
                             <span>${f.status}</span>
-                            ${isPaid ? `<span class="amt-text">₹${f.amount}</span>` : ''}
-                            ${isPaid ? `<span class="date-text">${f.date}</span>` : ''}
-                            ${isPaid && s.phone ? `<a href="${waLink}" target="_blank" class="wa-icon" onclick="event.stopPropagation()"><i class="fab fa-whatsapp"></i></a>` : ''}
+                            ${isPaid ? `<span class="amt-tag">₹${f.amount}</span><span class="date-tag">${f.date}</span>` : ''}
+                            ${isPaid && s.phone ? `<a href="${waLink}" target="_blank" class="wa-link" onclick="event.stopPropagation()"><i class="fab fa-whatsapp"></i></a>` : ''}
                         </div>
                     </td>`;
                 }).join('')}
-                <td class="admin-only" style="display:${isAdmin ? 'table-cell' : 'none'}">
-                    <button onclick="removeStudent(${idx})" style="background:red; color:white; border:none; padding:5px; border-radius:4px;">Del</button>
+                <td style="display:${isAdmin ? 'table-cell' : 'none'}">
+                    <button onclick="removeStudent(${idx})" style="background:#e53e3e; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer">Del</button>
                 </td>
             </tr>
         `).join('');
@@ -115,30 +117,25 @@
     }
 
     function handleFeeClick(idx, m) {
-        if (!isAdmin) return alert("Pehle Admin Login karein!");
+        if (!isAdmin) return alert("Please Login as Admin!");
         const f = students[idx].fees[m];
-        
         if (f.status === 'Unpaid') {
-            const amt = prompt(`${students[idx].name} - ${m} Amount:`, "500");
+            const amt = prompt(`${students[idx].name} - Amount:`, "500");
             if (amt) {
                 f.status = 'Paid';
                 f.amount = amt;
-                // Aaj ki date set karna
-                f.date = new Date().toLocaleDateString('en-GB'); 
+                f.date = new Date().toLocaleDateString('en-GB');
                 save();
             }
         } else {
-            if(confirm("Wapas Unpaid karein?")) {
-                f.status = 'Unpaid';
-                f.amount = 0;
-                f.date = '';
-                save();
+            if(confirm("Mark as Unpaid?")) {
+                f.status = 'Unpaid'; f.amount = 0; f.date = ''; save();
             }
         }
     }
 
     function addNewStudent() {
-        const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("WhatsApp No:"), c = prompt("Class:");
+        const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("WhatsApp:"), c = prompt("Class:");
         if (n && r && c) {
             let f = {}; months.forEach(m => f[m] = {status:'Unpaid', date:'', amount:0});
             students.push({name:n, roll:r, phone:p, class:c, fees:f});
@@ -147,7 +144,7 @@
     }
 
     function calculateTotals() {
-        let h = `<tr class="total-row"><td colspan="4">Total Monthly Collection:</td>`;
+        let h = `<tr class="total-row"><td colspan="4">Monthly Collection (₹):</td>`;
         months.forEach(m => {
             const monthlyTotal = students.reduce((sum, s) => sum + Number(s.fees[m].amount || 0), 0);
             h += `<td>₹${monthlyTotal}</td>`;
@@ -162,8 +159,32 @@
         });
     }
 
-    function removeStudent(idx) { if(confirm("Record delete karein?")) { students.splice(idx, 1); save(); } }
-    function save() { localStorage.setItem('pcc_finance_v2_date', JSON.stringify(students)); renderTable(); }
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(students));
+        const a = document.createElement('a');
+        a.setAttribute("href", dataStr);
+        a.setAttribute("download", "pcc_backup_" + new Date().toLocaleDateString() + ".json");
+        a.click();
+    }
+
+    function importData() { document.getElementById('fileInput').click(); }
+
+    function processFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                students = JSON.parse(event.target.result);
+                save();
+                alert("Data Restore Ho Gaya!");
+            } catch (err) { alert("Invalid File!"); }
+        };
+        reader.readAsText(file);
+    }
+
+    function removeStudent(idx) { if(confirm("Delete Student?")) { students.splice(idx, 1); save(); } }
+    function save() { localStorage.setItem('pcc_final_sync_v1', JSON.stringify(students)); renderTable(); }
     window.onload = renderTable;
 </script>
 </body>
