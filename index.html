@@ -3,41 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Coaching Classes</title>
+    <title>Progressive Coaching Classes | Ranchi</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 10px; }
-        .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #2c3e50; font-size: 20px; }
-        .menu { display: flex; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 200px; }
-        button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .add-btn { background: #27ae60; color: white; display: none; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f9; }
+        header { background: #2c3e50; color: white; padding: 40px 20px; text-align: center; }
+        .hero h1 { margin: 0; font-size: 28px; }
+        .teacher-section { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 40px 10px; }
+        .card { background: white; padding: 15px; border-radius: 10px; width: 250px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; border-bottom: 5px solid #3498db; }
+        
+        .admin-box { background: #fff; margin: 20px auto; padding: 20px; max-width: 98%; border-radius: 10px; border: 1px solid #ddd; }
+        .btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
         .login-btn { background: #2c3e50; color: white; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 1200px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 13px; }
+        .add-btn { background: #27ae60; color: white; display: none; margin: 10px 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 1400px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 12px; }
         th { background: #34495e; color: white; }
-        .paid { background: #d4edda; color: #155724; }
-        .unpaid { background: #f8d7da; color: #721c24; }
+        .paid { background: #d4edda; color: #155724; cursor: pointer; }
+        .unpaid { background: #f8d7da; color: #721c24; cursor: pointer; }
+        .send-sms { background: #25D366; color: white; padding: 3px 6px; border-radius: 4px; text-decoration: none; font-size: 10px; display: block; margin-top: 4px; font-weight: bold; }
         .total-row { background: #eee; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h1>Progressive Coaching Classes, Baragain</h1>
-    <div class="menu">
-        <button id="authBtn" class="login-btn" onclick="login()">Admin Login</button>
-        <input type="text" id="search" onkeyup="doSearch()" placeholder="Search Student Name...">
-        <button id="addBtn" class="add-btn" onclick="addNew()">+ Add Student</button>
+<header>
+    <div class="hero">
+        <h1>Progressive Coaching Classes, Baragain</h1>
+        <p>Run by: Anjuman Islamia Baragain, Ranchi</p>
+    </div>
+</header>
+
+<section class="teacher-section">
+    <div class="card"><h3>Sohail Ansari</h3><p>M.Sc & B.Ed</p></div>
+    <div class="card"><h3>Shah Zafar</h3><p>M.Tech</p></div>
+    <div class="card"><h3>Naquibi</h3><p>MA & MBA</p></div>
+</section>
+
+<div class="admin-box">
+    <h2 style="text-align:center;">Fee Management System</h2>
+    <div style="text-align:center;">
+        <button id="authBtn" class="btn login-btn" onclick="login()">Admin Login</button><br><br>
+        <input type="text" id="search" onkeyup="doSearch()" placeholder="Search Name/Roll..." style="padding:10px; width:200px;">
+        <button id="addBtn" class="btn add-btn" onclick="addNew()">+ Add Student</button>
     </div>
 
     <div style="overflow-x: auto;">
         <table>
             <thead>
                 <tr>
-                    <th>Roll</th><th>Name</th><th>Class</th>
+                    <th>Roll</th><th>Name</th><th>Phone</th><th>Class</th>
                     <th>Apr</th><th>May</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th>
-                    <th class="adm">Action</th>
+                    <th class="adm" style="display:none;">Action</th>
                 </tr>
             </thead>
             <tbody id="myData"></tbody>
@@ -49,80 +66,78 @@
 <script>
     let admin = false;
     let months = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"];
-    let data = JSON.parse(localStorage.getItem('coaching')) || [];
+    let data = JSON.parse(localStorage.getItem('coaching_v3')) || [];
 
     function login() {
-        let p = prompt("Password:");
-        if(p === "admin123") {
+        if(prompt("Password:") === "admin123") {
             admin = true;
             document.getElementById('authBtn').innerText = "Logout";
-            document.getElementById('addBtn').style.display = "block";
+            document.getElementById('addBtn').style.display = "inline-block";
             document.querySelectorAll('.adm').forEach(e => e.style.display = "table-cell");
-        } else { alert("Wrong Password"); }
-        show();
+            show();
+        }
     }
 
     function show() {
         let html = "";
         data.forEach((s, idx) => {
             html += `<tr>
-                <td>${s.r}</td><td><b>${s.n}</b></td><td>${s.c}</td>
-                ${months.map(m => `
-                    <td class="${s.f[m].s === 'Paid' ? 'paid' : 'unpaid'}" 
-                        onclick="pay(${idx},'${m}')" style="cursor:pointer">
-                        ${s.f[m].s}<br><small>${s.f[m].d}</small>
-                    </td>
-                `).join('')}
+                <td>${s.r}</td><td><b>${s.n}</b></td><td>${s.p}</td><td>${s.c}</td>
+                ${months.map(m => {
+                    let isPaid = s.f[m].s === 'Paid';
+                    let waMsg = `Hello ${s.n}, Aapki ${m} month ki fees Progressive Coaching Classes mein jama ho gayi hai. Shukriya!`;
+                    let waLink = `https://wa.me/91${s.p}?text=${encodeURIComponent(waMsg)}`;
+                    
+                    return `<td class="${isPaid ? 'paid' : 'unpaid'}">
+                        <div onclick="pay(${idx},'${m}')">${s.f[m].s}</div>
+                        ${isPaid ? `<a href="${waLink}" target="_blank" class="send-sms">Send WA</a>` : ''}
+                    </td>`;
+                }).join('')}
                 <td class="adm" style="display:${admin?'table-cell':'none'}">
-                    <button onclick="del(${idx})" style="background:red;color:white">X</button>
+                    <button onclick="del(${idx})" style="background:red;color:white;border:none;">Del</button>
                 </td>
             </tr>`;
         });
         document.getElementById('myData').innerHTML = html;
-        
-        let totalHtml = `<td colspan="3">Monthly Total (Paid):</td>`;
-        months.forEach(m => {
-            let count = data.filter(s => s.f[m].s === 'Paid').length;
-            totalHtml += `<td>${count}</td>`;
-        });
-        document.getElementById('myTotal').innerHTML = totalHtml;
+        updateTotals();
     }
 
     function addNew() {
-        let name = prompt("Name:");
-        let roll = prompt("Roll No:");
-        let cls = prompt("Class:");
-        if(name && roll && cls) {
+        let n = prompt("Student Name:");
+        let r = prompt("Roll No:");
+        let p = prompt("WhatsApp No (10 digits):");
+        let c = prompt("Class:");
+        if(n && r && p && c) {
             let fees = {};
             months.forEach(m => fees[m] = {s:'Unpaid', d:''});
-            data.push({n:name, r:roll, c:cls, f:fees});
-            localStorage.setItem('coaching', JSON.stringify(data));
+            data.push({n, r, p, c, f:fees});
+            localStorage.setItem('coaching_v3', JSON.stringify(data));
             show();
-            alert("Bacha add ho gaya!");
         }
     }
 
     function pay(idx, m) {
-        if(!admin) return alert("Pehle Admin Login karein!");
+        if(!admin) return;
         let s = data[idx].f[m];
         s.s = (s.s === 'Paid') ? 'Unpaid' : 'Paid';
-        s.d = (s.s === 'Paid') ? new Date().toLocaleDateString() : '';
-        localStorage.setItem('coaching', JSON.stringify(data));
+        localStorage.setItem('coaching_v3', JSON.stringify(data));
         show();
     }
 
-    function del(idx) {
-        if(confirm("Delete?")) {
-            data.splice(idx, 1);
-            localStorage.setItem('coaching', JSON.stringify(data));
-            show();
-        }
+    function updateTotals() {
+        let totalHtml = `<td colspan="4">Monthly Paid Total:</td>`;
+        months.forEach(m => {
+            totalHtml += `<td>${data.filter(s => s.f[m].s === 'Paid').length}</td>`;
+        });
+        document.getElementById('myTotal').innerHTML = totalHtml;
     }
 
     function doSearch() {
         let v = document.getElementById('search').value.toLowerCase();
         document.querySelectorAll('#myData tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(v) ? '' : 'none');
     }
+
+    function del(idx) { if(confirm("Delete?")) { data.splice(idx, 1); localStorage.setItem('coaching_v3', JSON.stringify(data)); show(); } }
 
     window.onload = show;
 </script>
