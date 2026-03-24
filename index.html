@@ -3,158 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Coaching Classes | Ranchi</title>
+    <title>Progressive Coaching - Finance Portal v2</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f9; }
-        header { background: #2c3e50; color: white; padding: 40px 20px; text-align: center; }
-        .hero h1 { margin: 0; font-size: 28px; }
-        .teacher-section { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 40px 10px; }
-        .card { background: white; padding: 15px; border-radius: 10px; width: 250px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; border-bottom: 5px solid #3498db; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f0f2f5; }
+        header { background: #1a2a3a; color: white; padding: 25px; text-align: center; }
+        .container { padding: 15px; max-width: 98%; margin: auto; background: white; border-radius: 12px; margin-top: 15px; }
+        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 200px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .login-btn { background: #34495e; color: white; }
+        .add-btn { background: #27ae60; color: white; display: none; }
         
-        .admin-box { background: #fff; margin: 20px auto; padding: 20px; max-width: 98%; border-radius: 10px; border: 1px solid #ddd; }
-        .btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
-        .login-btn { background: #2c3e50; color: white; }
-        .add-btn { background: #27ae60; color: white; display: none; margin: 10px 0; }
+        .table-box { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 1650px; }
+        th, td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 12px; }
+        th { background: #f8f9fa; position: sticky; top: 0; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 1450px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 12px; }
-        th { background: #34495e; color: white; }
-        .paid { background: #d4edda; color: #155724; cursor: pointer; }
-        .unpaid { background: #f8d7da; color: #721c24; cursor: pointer; }
-        .date-text { font-size: 10px; color: #555; display: block; margin-top: 2px; font-weight: normal; }
-        .send-sms { background: #25D366; color: white; padding: 2px 5px; border-radius: 4px; text-decoration: none; font-size: 9px; display: inline-block; margin-top: 5px; }
-        .total-row { background: #eee; font-weight: bold; }
+        /* Paid cell styling */
+        .paid { background: #e6fffa; color: #2c7a7b; font-weight: bold; border-radius: 4px; }
+        .unpaid { background: #fff5f5; color: #c53030; border-radius: 4px; }
+        
+        .info-container { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .amt-text { font-size: 11px; color: #1a202c; }
+        .date-text { font-size: 9px; color: #718096; font-weight: normal; }
+        
+        .wa-icon { color: #25D366; font-size: 16px; text-decoration: none; margin-top: 2px; }
+        .total-row { background: #edf2f7; font-weight: bold; }
+        .admin-only { display: none; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="hero">
-        <h1>Progressive Coaching Classes, Baragain</h1>
-        <p>Run by: Anjuman Islamia Baragain, Ranchi</p>
-    </div>
+    <h1>Progressive Coaching Classes</h1>
+    <p>Professional Fee Records with Date & Amount</p>
 </header>
 
-<section class="teacher-section">
-    <div class="card"><h3>Sohail Ansari</h3><p>M.Sc & B.Ed</p></div>
-    <div class="card"><h3>Shah Zafar</h3><p>M.Tech</p></div>
-    <div class="card"><h3>Naquibi</h3><p>MA & MBA</p></div>
-</section>
-
-<div class="admin-box">
-    <h2 style="text-align:center;">Fee Management System</h2>
-    <div style="text-align:center;">
-        <button id="authBtn" class="btn login-btn" onclick="login()">Admin Login</button><br><br>
-        <input type="text" id="search" onkeyup="doSearch()" placeholder="Search Name/Roll..." style="padding:10px; width:200px;">
-        <button id="addBtn" class="btn add-btn" onclick="addNew()">+ Add Student</button>
+<div class="container">
+    <div class="controls">
+        <button id="authBtn" class="btn login-btn" onclick="toggleLogin()">Admin Login</button>
+        <input type="text" id="searchBox" onkeyup="filterTable()" placeholder="Search Student/Class...">
+        <button id="addBtn" class="btn add-btn" onclick="addNewStudent()">+ Add Student</button>
     </div>
 
-    <div style="overflow-x: auto;">
+    <div class="table-box">
         <table>
             <thead>
                 <tr>
-                    <th>Roll</th><th>Name</th><th>Phone</th><th>Class</th>
+                    <th>Roll</th><th>Student Name</th><th>Phone</th><th>Class</th>
                     <th>Apr</th><th>May</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th>
-                    <th class="adm" style="display:none;">Action</th>
+                    <th class="admin-only">Action</th>
                 </tr>
             </thead>
-            <tbody id="myData"></tbody>
-            <tr class="total-row" id="myTotal"></tr>
+            <tbody id="studentData"></tbody>
+            <tfoot id="totalRow"></tfoot>
         </table>
     </div>
 </div>
 
 <script>
-    let admin = false;
-    let months = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"];
-    // Using a new storage key to avoid conflicts with old structure
-    let data = JSON.parse(localStorage.getItem('coaching_v4_date')) || [];
+    let isAdmin = false;
+    const months = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"];
+    let students = JSON.parse(localStorage.getItem('pcc_finance_v2_date')) || [];
 
-    function login() {
-        if(prompt("Password:") === "admin123") {
-            admin = true;
-            document.getElementById('authBtn').innerText = "Logout";
-            document.getElementById('addBtn').style.display = "inline-block";
-            document.querySelectorAll('.adm').forEach(e => e.style.display = "table-cell");
-            show();
+    function toggleLogin() {
+        if (!isAdmin) {
+            if (prompt("Password:") === "admin123") {
+                isAdmin = true;
+                document.getElementById('authBtn').innerText = "Logout";
+                document.getElementById('addBtn').style.display = "inline-block";
+                renderTable();
+            }
+        } else {
+            isAdmin = false;
+            document.getElementById('authBtn').innerText = "Admin Login";
+            document.getElementById('addBtn').style.display = "none";
+            renderTable();
         }
     }
 
-    function show() {
-        let html = "";
-        data.forEach((s, idx) => {
-            html += `<tr>
-                <td>${s.r}</td><td><b>${s.n}</b></td><td>${s.p}</td><td>${s.c}</td>
+    function renderTable() {
+        const tbody = document.getElementById('studentData');
+        tbody.innerHTML = students.map((s, idx) => `
+            <tr>
+                <td>${s.roll}</td>
+                <td><strong>${s.name}</strong></td>
+                <td>${s.phone || '-'}</td>
+                <td>${s.class}</td>
                 ${months.map(m => {
-                    let isPaid = s.f[m].s === 'Paid';
-                    let pDate = s.f[m].d || ''; // Payment date
-                    let waMsg = `Hello ${s.n}, Aapki ${m} month ki fees Progressive Coaching Classes mein jama ho gayi hai on ${pDate}. Shukriya!`;
-                    let waLink = `https://wa.me/91${s.p}?text=${encodeURIComponent(waMsg)}`;
+                    const f = s.fees[m];
+                    const isPaid = f.status === 'Paid';
+                    const msg = `PCC: Hello ${s.name}, Aapki ${m} mahine ki fee ₹${f.amount} jama ho gayi hai on ${f.date}. Shukriya!`;
+                    const waLink = `https://wa.me/91${s.phone}?text=${encodeURIComponent(msg)}`;
                     
-                    return `<td class="${isPaid ? 'paid' : 'unpaid'}">
-                        <div onclick="pay(${idx},'${m}')" style="font-weight:bold;">${s.f[m].s}</div>
-                        ${isPaid ? `<span class="date-text">${pDate}</span>` : ''}
-                        ${isPaid ? `<a href="${waLink}" target="_blank" class="send-sms">WhatsApp</a>` : ''}
+                    return `<td class="${isPaid ? 'paid' : 'unpaid'}" onclick="handleFeeClick(${idx}, '${m}')" style="cursor:pointer">
+                        <div class="info-container">
+                            <span>${f.status}</span>
+                            ${isPaid ? `<span class="amt-text">₹${f.amount}</span>` : ''}
+                            ${isPaid ? `<span class="date-text">${f.date}</span>` : ''}
+                            ${isPaid && s.phone ? `<a href="${waLink}" target="_blank" class="wa-icon" onclick="event.stopPropagation()"><i class="fab fa-whatsapp"></i></a>` : ''}
+                        </div>
                     </td>`;
                 }).join('')}
-                <td class="adm" style="display:${admin?'table-cell':'none'}">
-                    <button onclick="del(${idx})" style="background:red;color:white;border:none;cursor:pointer;">Del</button>
+                <td class="admin-only" style="display:${isAdmin ? 'table-cell' : 'none'}">
+                    <button onclick="removeStudent(${idx})" style="background:red; color:white; border:none; padding:5px; border-radius:4px;">Del</button>
                 </td>
-            </tr>`;
-        });
-        document.getElementById('myData').innerHTML = html;
-        updateTotals();
+            </tr>
+        `).join('');
+        calculateTotals();
     }
 
-    function addNew() {
-        let n = prompt("Student Name:");
-        let r = prompt("Roll No:");
-        let p = prompt("WhatsApp No (10 digits):");
-        let c = prompt("Class:");
-        if(n && r && p && c) {
-            let fees = {};
-            months.forEach(m => fees[m] = {s:'Unpaid', d:''});
-            data.push({n, r, p, c, f:fees});
-            saveData();
-        }
-    }
-
-    function pay(idx, m) {
-        if(!admin) return alert("Pehle Admin Login karein!");
-        let s = data[idx].f[m];
-        if (s.s === 'Unpaid') {
-            s.s = 'Paid';
-            // Current date add ho rahi hai (DD/MM/YYYY format)
-            let today = new Date();
-            s.d = today.toLocaleDateString('en-GB'); 
+    function handleFeeClick(idx, m) {
+        if (!isAdmin) return alert("Pehle Admin Login karein!");
+        const f = students[idx].fees[m];
+        
+        if (f.status === 'Unpaid') {
+            const amt = prompt(`${students[idx].name} - ${m} Amount:`, "500");
+            if (amt) {
+                f.status = 'Paid';
+                f.amount = amt;
+                // Aaj ki date set karna
+                f.date = new Date().toLocaleDateString('en-GB'); 
+                save();
+            }
         } else {
-            s.s = 'Unpaid';
-            s.d = '';
+            if(confirm("Wapas Unpaid karein?")) {
+                f.status = 'Unpaid';
+                f.amount = 0;
+                f.date = '';
+                save();
+            }
         }
-        saveData();
     }
 
-    function saveData() {
-        localStorage.setItem('coaching_v4_date', JSON.stringify(data));
-        show();
+    function addNewStudent() {
+        const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("WhatsApp No:"), c = prompt("Class:");
+        if (n && r && c) {
+            let f = {}; months.forEach(m => f[m] = {status:'Unpaid', date:'', amount:0});
+            students.push({name:n, roll:r, phone:p, class:c, fees:f});
+            save();
+        }
     }
 
-    function updateTotals() {
-        let totalHtml = `<td colspan="4">Monthly Paid Total:</td>`;
+    function calculateTotals() {
+        let h = `<tr class="total-row"><td colspan="4">Total Monthly Collection:</td>`;
         months.forEach(m => {
-            totalHtml += `<td>${data.filter(s => s.f[m].s === 'Paid').length}</td>`;
+            const monthlyTotal = students.reduce((sum, s) => sum + Number(s.fees[m].amount || 0), 0);
+            h += `<td>₹${monthlyTotal}</td>`;
         });
-        document.getElementById('myTotal').innerHTML = totalHtml;
+        document.getElementById('totalRow').innerHTML = h + `</tr>`;
     }
 
-    function doSearch() {
-        let v = document.getElementById('search').value.toLowerCase();
-        document.querySelectorAll('#myData tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(v) ? '' : 'none');
+    function filterTable() {
+        const val = document.getElementById('searchBox').value.toLowerCase();
+        document.querySelectorAll('#studentData tr').forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none';
+        });
     }
 
-    function del(idx) { if(confirm("Delete student record?")) { data.splice(idx, 1); saveData(); } }
-
-    window.onload = show;
+    function removeStudent(idx) { if(confirm("Record delete karein?")) { students.splice(idx, 1); save(); } }
+    function save() { localStorage.setItem('pcc_finance_v2_date', JSON.stringify(students)); renderTable(); }
+    window.onload = renderTable;
 </script>
 </body>
 </html>
