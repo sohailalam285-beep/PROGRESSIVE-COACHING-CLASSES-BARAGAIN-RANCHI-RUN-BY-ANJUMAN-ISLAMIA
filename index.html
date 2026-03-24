@@ -3,30 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Coaching - Admin Portal</title>
+    <title>Progressive Coaching - Multi-Class Portal</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #eef2f3; padding: 20px; }
-        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 8px solid #2c3e50; }
-        .header { text-align: center; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #eef2f3; padding: 10px; }
+        .container { max-width: 100%; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 8px solid #2c3e50; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; }
+        .header h1 { margin: 0; color: #2c3e50; font-size: 24px; }
         
-        .controls { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 8px; align-items: center; }
-        .search-box input { padding: 10px; width: 250px; border: 1px solid #ddd; border-radius: 6px; }
-        
-        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
-        .add-btn { background: #27ae60; display: none; } /* Hide by default */
+        .controls { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; background: #f9f9f9; padding: 15px; border-radius: 8px; flex-wrap: wrap; align-items: center; }
+        .search-box, .filter-box { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
+        .filter-box { background: white; font-weight: bold; color: #2c3e50; }
+
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
+        .add-btn { background: #27ae60; display: none; }
         .login-btn { background: #2c3e50; }
         .print-btn { background: #3498db; }
+        .btn:hover { opacity: 0.8; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        .table-wrapper { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1300px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
         th { background-color: #34495e; color: white; }
         
-        .status-btn { padding: 6px; border-radius: 4px; font-weight: bold; display: block; margin-bottom: 4px; border: 1px solid transparent; }
-        .paid { background: #d4edda; color: #155724; }
-        .unpaid { background: #f8d7da; color: #721c24; }
-        .admin-only { display: none; } /* Hide edit options */
-
+        .status-btn { padding: 6px; border-radius: 4px; font-weight: bold; display: block; margin-bottom: 2px; border: 1px solid transparent; min-width: 70px; font-size: 11px; }
+        .paid { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .unpaid { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .pay-date { font-size: 9px; color: #666; display: block; margin-top: 2px; }
+        
+        .admin-only { display: none; }
         .delete-btn { background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+
+        @media print {
+            .controls, .delete-btn, .admin-only, #authBtn { display: none !important; }
+            .container { box-shadow: none; border: none; padding: 0; }
+            table { font-size: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -39,48 +50,61 @@
     </div>
     
     <div class="controls">
-        <input type="text" id="searchInput" onkeyup="searchStudent()" placeholder="Search Name or Roll No..." class="search-box">
+        <div>
+            <input type="text" id="searchInput" onkeyup="filterData()" placeholder="Search Name or Roll..." class="search-box">
+            
+            <select id="classFilter" onchange="filterData()" class="filter-box">
+                <option value="All">All Categories</option>
+                <optgroup label="Schooling">
+                    <option value="1st">Class 1</option><option value="2nd">Class 2</option>
+                    <option value="3rd">Class 3</option><option value="4th">Class 4</option>
+                    <option value="5th">Class 5</option><option value="6th">Class 6</option>
+                    <option value="7th">Class 7</option><option value="8th">Class 8</option>
+                    <option value="9th">Class 9</option><option value="10th">Class 10</option>
+                    <option value="11th">Class 11</option><option value="12th">Class 12</option>
+                </optgroup>
+                <optgroup label="Competition">
+                    <option value="Competition">Competition Batch</option>
+                </optgroup>
+            </select>
+        </div>
         <div>
             <button id="addBtn" class="btn add-btn" onclick="addStudent()">+ Add Student</button>
-            <button class="btn print-btn" onclick="window.print()">Print</button>
+            <button class="btn print-btn" onclick="window.print()">Print Report</button>
         </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Roll No</th>
-                <th>Name</th>
-                <th>Class</th>
-                <th>Jan</th>
-                <th>Feb</th>
-                <th>Mar</th>
-                <th class="admin-only">Action</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Roll</th>
+                    <th>Student Name</th>
+                    <th>Class/Category</th>
+                    <th>Apr</th><th>May</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th>
+                    <th class="admin-only">Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
     let isAdmin = false;
-    const ADMIN_PASSWORD = "admin123"; // Aap ise yahan badal sakte hain
+    const ADMIN_PASSWORD = "admin123"; 
+    const months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
 
-    let students = JSON.parse(localStorage.getItem('coachingData')) || [
-        { roll: "101", name: "Anas", class: "10th", fees: { Jan: {status: "Unpaid", date: ""}, Feb: {status: "Unpaid", date: ""}, Mar: {status: "Unpaid", date: ""} } }
-    ];
+    let students = JSON.parse(localStorage.getItem('coachingData')) || [];
 
     function handleAuth() {
         if (!isAdmin) {
-            let pass = prompt("Admin Password daalein:");
+            let pass = prompt("Enter Admin Password:");
             if (pass === ADMIN_PASSWORD) {
                 isAdmin = true;
                 document.getElementById('authBtn').innerText = "Logout";
                 document.getElementById('authBtn').style.background = "#e67e22";
-                alert("Welcome Admin! Ab aap edit kar sakte hain.");
-            } else {
-                alert("Galat Password!");
-            }
+            } else { alert("Invalid Password!"); }
         } else {
             isAdmin = false;
             document.getElementById('authBtn').innerText = "Admin Login";
@@ -90,23 +114,22 @@
     }
 
     function loadData() {
-        // Edit options show/hide karna
         document.getElementById('addBtn').style.display = isAdmin ? 'inline-block' : 'none';
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'table-cell' : 'none');
 
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = students.map((s, sIndex) => `
-            <tr>
+            <tr class="student-row" data-class="${s.class}">
                 <td>${s.roll}</td>
                 <td><strong>${s.name}</strong></td>
-                <td>${s.class}</td>
-                ${['Jan', 'Feb', 'Mar'].map(month => `
+                <td><span style="color:#2980b9; font-weight:bold">${s.class}</span></td>
+                ${months.map(m => `
                     <td>
-                        <div class="status-btn ${s.fees[month].status.toLowerCase()}" 
+                        <div class="status-btn ${s.fees[m].status.toLowerCase()}" 
                              style="cursor: ${isAdmin ? 'pointer' : 'default'}"
-                             onclick="${isAdmin ? `toggleFee(${sIndex}, '${month}')` : ''}">
-                            ${s.fees[month].status}
-                            <div style="font-size:10px">${s.fees[month].date}</div>
+                             onclick="${isAdmin ? `toggleFee(${sIndex}, '${m}')` : ''}">
+                            ${s.fees[m].status}
+                            <span class="pay-date">${s.fees[m].date}</span>
                         </div>
                     </td>
                 `).join('')}
@@ -115,18 +138,32 @@
                 </td>
             </tr>
         `).join('');
+        filterData();
     }
 
-    // ... (toggleFee, addStudent, deleteStudent, searchStudent functions same rahenge)
-    function toggleFee(index, month) {
+    function filterData() {
+        let searchVal = document.getElementById('searchInput').value.toLowerCase();
+        let classVal = document.getElementById('classFilter').value;
+        let rows = document.querySelectorAll('.student-row');
+
+        rows.forEach(row => {
+            let rowText = row.innerText.toLowerCase();
+            let rowClass = row.getAttribute('data-class');
+            let matchesSearch = rowText.includes(searchVal);
+            let matchesClass = (classVal === "All" || rowClass === classVal);
+            row.style.display = (matchesSearch && matchesClass) ? '' : 'none';
+        });
+    }
+
+    function toggleFee(index, m) {
         if(!isAdmin) return;
-        let s = students[index].fees[month];
-        if (s.status === "Unpaid") {
-            s.status = "Paid";
-            s.date = new Date().toLocaleDateString('en-GB');
+        let fee = students[index].fees[m];
+        if (fee.status === "Unpaid") {
+            fee.status = "Paid";
+            fee.date = new Date().toLocaleDateString('en-GB');
         } else {
-            s.status = "Unpaid";
-            s.date = "";
+            fee.status = "Unpaid";
+            fee.date = "";
         }
         saveData();
     }
@@ -137,20 +174,25 @@
     }
 
     function addStudent() {
-        let n = prompt("Name:"), r = prompt("Roll:"), c = prompt("Class:");
-        if(n && r) {
-            students.push({ roll: r, name: n, class: c, fees: { Jan: {status: "Unpaid", date: ""}, Feb: {status: "Unpaid", date: ""}, Mar: {status: "Unpaid", date: ""} } });
+        let n = prompt("Student Name:");
+        let r = prompt("Roll Number:");
+        let c = prompt("Class (e.g. 1st, 10th, or Competition):");
+        
+        if(n && r && c) {
+            let feeObj = {};
+            months.forEach(m => feeObj[m] = {status: "Unpaid", date: ""});
+            students.push({ roll: r, name: n, class: c, fees: feeObj });
             saveData();
+        } else {
+            alert("Please fill all details!");
         }
     }
 
     function deleteStudent(i) {
-        if(confirm("Delete?")) { students.splice(i, 1); saveData(); }
-    }
-
-    function searchStudent() {
-        let val = document.getElementById('searchInput').value.toLowerCase();
-        document.querySelectorAll('#tableBody tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(val) ? '' : 'none');
+        if(confirm("Permanently delete this student?")) { 
+            students.splice(i, 1); 
+            saveData(); 
+        }
     }
 
     window.onload = loadData;
