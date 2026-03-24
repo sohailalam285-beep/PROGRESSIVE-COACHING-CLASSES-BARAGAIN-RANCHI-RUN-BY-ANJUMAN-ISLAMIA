@@ -3,51 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCC Baragain - Professional Portal</title>
+    <title>PCC Baragain - Smart Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a2a3a; --accent: #3498db; --success: #27ae60; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; }
         header { background: var(--primary); color: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--accent); }
-        .container { padding: 15px; max-width: 98%; margin: 15px auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { padding: 10px; max-width: 98%; margin: 10px auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 250px; }
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 220px; }
+        .btn { padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 5px; }
         .login-btn { background: #34495e; }
         .add-btn { background: var(--success); display: none; }
         .save-btn { background: #e67e22; display: none; }
-        .sync-status { text-align: center; font-size: 13px; color: #7f8c8d; margin-bottom: 10px; font-weight: bold; }
-        .table-box { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 1600px; }
-        th, td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 13px; }
-        th { background: #f8f9fa; position: sticky; top: 0; }
+        .sync-status { text-align: center; font-size: 13px; margin-bottom: 10px; font-weight: bold; color: #7f8c8d; }
+        .table-box { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; height: 500px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1500px; }
+        th { background: #f8f9fa; position: sticky; top: 0; z-index: 10; padding: 12px; border: 1px solid #eee; }
+        td { border: 1px solid #eee; padding: 8px; text-align: center; font-size: 13px; }
         .paid { background: #e6fffa; color: #2c7a7b; font-weight: bold; }
         .unpaid { background: #fff5f5; color: #c53030; }
-        .date-text { font-size: 10px; color: #666; display: block; margin-top: 2px; }
-        .total-row { background: #1a2a3a; color: white; font-weight: bold; }
+        .date-badge { font-size: 9px; color: #555; display: block; background: #eee; border-radius: 4px; margin-top: 3px; }
+        .total-row { background: #1a2a3a !important; color: white; font-weight: bold; position: sticky; bottom: 0; }
+        .wa-btn { background: #25D366; color: white; padding: 4px 8px; border-radius: 5px; text-decoration: none; font-size: 11px; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>Progressive Coaching Classes</h1>
-    <p>Baragain, Ranchi | Managed by Sohail Alam</p>
+    <p>Baragain, Ranchi | Smart Cloud System</p>
 </header>
 
 <div class="container">
-    <div id="syncStatus" class="sync-status"><i class="fas fa-cloud"></i> Connecting...</div>
+    <div id="syncStatus" class="sync-status">🔄 Connecting to Cloud...</div>
     <div class="controls">
-        <button id="authBtn" class="btn login-btn" onclick="toggleLogin()">Admin Login</button>
-        <input type="text" id="searchBox" onkeyup="filterTable()" placeholder="Search Student...">
-        <button id="addBtn" class="btn add-btn" onclick="addNewStudent()">+ Add Student</button>
-        <button id="saveBtn" class="btn save-btn" onclick="saveToCloud()">Save Changes (Cloud)</button>
+        <button id="authBtn" class="btn login-btn" onclick="toggleLogin()"><i class="fas fa-lock"></i> Admin Login</button>
+        <input type="text" id="searchBox" onkeyup="filterTable()" placeholder="Roll ya Name search karein...">
+        <button id="addBtn" class="btn add-btn" onclick="addNewStudent()"><i class="fas fa-plus"></i> Naya Student</button>
+        <button id="saveBtn" class="btn save-btn" onclick="saveToCloud()"><i class="fas fa-cloud-upload-alt"></i> Save & Sync</button>
     </div>
 
     <div class="table-box">
         <table>
             <thead>
                 <tr>
-                    <th>Roll</th><th>Name</th><th>Phone</th><th>Class</th>
+                    <th>Action</th><th>Roll</th><th>Name</th><th>Phone</th><th>Class</th>
                     <th>Apr</th><th>May</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th>
                 </tr>
             </thead>
@@ -58,6 +59,7 @@
 </div>
 
 <script>
+    // --- APNA LINK YAHAN HAI ---
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJnUsOkYbr7u6wS7rL99O3U_tE3X-Uv9G0-uN-yF6kU5-I5E6_zI6eE/exec"; 
     
     let isAdmin = false;
@@ -74,47 +76,27 @@
                     fees: row[4] ? JSON.parse(row[4]) : {}
                 }));
             }
-            document.getElementById('syncStatus').innerHTML = "<span style='color:green'>● Live</span>";
+            document.getElementById('syncStatus').innerHTML = "<span style='color:green'>● Live (Cloud Connected)</span>";
             renderTable();
-        } catch (e) { document.getElementById('syncStatus').innerText = "Offline"; }
-    }
-
-    async function saveToCloud() {
-        const btn = document.getElementById('saveBtn');
-        btn.innerText = "Saving...";
-        try {
-            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(students) });
-            alert("Data Saved!");
-            btn.innerText = "Save Changes (Cloud)";
-        } catch (e) { alert("Error!"); }
-    }
-
-    function toggleLogin() {
-        if (!isAdmin) {
-            if (prompt("Password:") === "admin123") {
-                isAdmin = true;
-                document.getElementById('authBtn').innerText = "Logout";
-                document.getElementById('addBtn').style.display = "inline-block";
-                document.getElementById('saveBtn').style.display = "inline-block";
-                renderTable();
-            }
-        } else { location.reload(); }
+        } catch (e) { document.getElementById('syncStatus').innerText = "❌ Offline/Error"; }
     }
 
     function renderTable() {
         const tbody = document.getElementById('studentData');
-        tbody.innerHTML = students.map((s, idx) => `
-            <tr>
-                <td>${s.roll}</td><td><strong>${s.name}</strong></td><td>${s.phone}</td><td>${s.class}</td>
-                ${months.map(m => {
-                    const f = s.fees[m] || {status: 'Unpaid', amount: 0, date: ''};
-                    return `<td class="${f.status === 'Paid' ? 'paid' : 'unpaid'}" onclick="handleFee(${idx},'${m}')" style="cursor:pointer">
-                        ${f.status} ${f.amount > 0 ? '₹'+f.amount : ''}
-                        ${f.date ? `<span class="date-text">${f.date}</span>` : ''}
-                    </td>`;
-                }).join('')}
-            </tr>
-        `).join('');
+        tbody.innerHTML = students.map((s, idx) => {
+            let rowHtml = `<tr>
+                <td><a href="https://wa.me/91${s.phone}?text=${encodeURIComponent('PCC Baragain: Student '+s.name+' ki fees update ho gayi hai.')}" target="_blank" class="wa-btn"><i class="fab fa-whatsapp"></i> Notify</a></td>
+                <td>${s.roll}</td><td><strong>${s.name}</strong></td><td>${s.phone}</td><td>${s.class}</td>`;
+            
+            months.forEach(m => {
+                const f = s.fees[m] || {status: 'Unpaid', amount: 0, date: ''};
+                rowHtml += `<td class="${f.status === 'Paid' ? 'paid' : 'unpaid'}" onclick="handleFee(${idx},'${m}')" style="cursor:pointer">
+                    ${f.status}<br>${f.amount > 0 ? '₹'+f.amount : ''}
+                    ${f.date ? `<span class="date-badge">${f.date}</span>` : ''}
+                </td>`;
+            });
+            return rowHtml + `</tr>`;
+        }).join('');
         updateTotals();
     }
 
@@ -124,19 +106,25 @@
         const f = students[idx].fees[m] || {status: 'Unpaid', amount: 0, date: ''};
         
         if (f.status === 'Unpaid') {
-            const amt = prompt("Amount:", "500");
+            const amt = prompt("Fees Amount daalein:", "500");
             if (amt) {
-                const today = new Date().toLocaleDateString('en-GB'); // DD/MM/YYYY format
+                const today = new Date().toLocaleDateString('en-GB'); // Auto Date DD/MM/YYYY
                 students[idx].fees[m] = { status: 'Paid', amount: Number(amt), date: today };
+                
+                // Auto WhatsApp Message Alert
+                if(confirm("Kya aap WhatsApp par notification bhejna chahte hain?")) {
+                    const msg = `PCC Baragain: Dear Parent, Student ${students[idx].name} ki ${m} mahine ki fees ₹${amt} jama ho gayi hai. Date: ${today}. Thank you!`;
+                    window.open(`https://wa.me/91${students[idx].phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                }
             }
         } else {
-            if(confirm("Mark as Unpaid?")) students[idx].fees[m] = { status: 'Unpaid', amount: 0, date: '' };
+            if(confirm("Ise wapas Unpaid karein?")) students[idx].fees[m] = { status: 'Unpaid', amount: 0, date: '' };
         }
         renderTable();
     }
 
     function updateTotals() {
-        let html = `<tr class="total-row"><td colspan="4">TOTAL COLLECTION</td>`;
+        let html = `<tr class="total-row"><td colspan="5">MONTHLY TOTAL COLLECTION</td>`;
         months.forEach(m => {
             let colTotal = students.reduce((sum, s) => sum + (s.fees[m]?.amount || 0), 0);
             html += `<td>₹${colTotal}</td>`;
@@ -144,8 +132,30 @@
         document.getElementById('totalRow').innerHTML = html + `</tr>`;
     }
 
+    async function saveToCloud() {
+        const btn = document.getElementById('saveBtn');
+        btn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Saving...";
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(students) });
+            alert("Success! Data Google Sheet mein save ho gaya.");
+            btn.innerHTML = "<i class='fas fa-cloud-upload-alt'></i> Save & Sync";
+        } catch (e) { alert("Save Failed! Net check karein."); }
+    }
+
+    function toggleLogin() {
+        if (!isAdmin) {
+            if (prompt("Admin Password daalein:") === "admin123") {
+                isAdmin = true;
+                document.getElementById('authBtn').innerHTML = "<i class='fas fa-sign-out-alt'></i> Logout";
+                document.getElementById('addBtn').style.display = "inline-block";
+                document.getElementById('saveBtn').style.display = "inline-block";
+                renderTable();
+            }
+        } else { location.reload(); }
+    }
+
     function addNewStudent() {
-        const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("Phone:"), c = prompt("Class:");
+        const n = prompt("Bache ka Naam:"), r = prompt("Roll No:"), p = prompt("Phone (WhatsApp):"), c = prompt("Class:");
         if (n && r) {
             students.push({roll:r, name:n, phone:p, class:c, fees:{}});
             renderTable();
