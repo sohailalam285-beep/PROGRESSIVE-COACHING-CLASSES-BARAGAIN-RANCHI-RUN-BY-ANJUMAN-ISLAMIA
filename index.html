@@ -3,49 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Progressive Coaching - Final Admin Portal</title>
+    <title>PCC Baragain - Live Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f0f2f5; }
-        header { background: #1a2a3a; color: white; padding: 20px; text-align: center; }
-        .container { padding: 15px; max-width: 98%; margin: auto; background: white; border-radius: 12px; margin-top: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 220px; }
-        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 13px; }
-        .login-btn { background: #34495e; color: white; }
-        .add-btn { background: #27ae60; color: white; display: none; }
-        .backup-btn { background: #3498db; color: white; }
-        .restore-btn { background: #8e44ad; color: white; }
-        
-        .table-box { overflow-x: auto; margin-top: 10px; }
+        :root { --primary: #1a2a3a; --accent: #3498db; --success: #27ae60; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; }
+        header { background: var(--primary); color: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--accent); }
+        .container { padding: 15px; max-width: 98%; margin: 15px auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 250px; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; }
+        .login-btn { background: #34495e; }
+        .add-btn { background: var(--success); display: none; }
+        .save-btn { background: #e67e22; display: none; }
+        .sync-status { text-align: center; font-size: 13px; color: #7f8c8d; margin-bottom: 10px; font-weight: bold; }
+        .table-box { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; min-width: 1600px; }
-        th, td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 12px; }
-        th { background: #f8f9fa; color: #333; position: sticky; top: 0; }
-        
+        th, td { border: 1px solid #eee; padding: 12px; text-align: center; font-size: 13px; }
+        th { background: #f8f9fa; position: sticky; top: 0; }
         .paid { background: #e6fffa; color: #2c7a7b; font-weight: bold; }
         .unpaid { background: #fff5f5; color: #c53030; }
-        .info-box { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .amt-tag { font-size: 11px; color: #1a202c; }
-        .date-tag { font-size: 9px; color: #718096; font-weight: normal; }
-        .wa-link { color: #25D366; font-size: 16px; margin-top: 2px; }
-        .total-row { background: #edf2f7; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>Progressive Coaching Classes</h1>
-    <p>Admin Control Panel | Baragain, Ranchi</p>
+    <p>Baragain, Ranchi | Live Cloud Database</p>
 </header>
 
 <div class="container">
+    <div id="syncStatus" class="sync-status"><i class="fas fa-cloud"></i> Connecting to Cloud...</div>
     <div class="controls">
         <button id="authBtn" class="btn login-btn" onclick="toggleLogin()">Admin Login</button>
-        <input type="text" id="searchBox" onkeyup="filterTable()" placeholder="Search Student/Class...">
-        <button id="addBtn" class="btn add-btn" onclick="addNewStudent()">+ Add Student</button>
-        <button class="btn backup-btn" onclick="exportData()"><i class="fas fa-download"></i> Backup</button>
-        <button class="btn restore-btn" onclick="importData()"><i class="fas fa-upload"></i> Restore</button>
-        <input type="file" id="fileInput" style="display:none" onchange="processFile(event)">
+        <input type="text" id="searchBox" onkeyup="filterTable()" placeholder="Roll ya Naam search karein...">
+        <button id="addBtn" class="btn add-btn" onclick="addNewStudent()">+ Naya Student</button>
+        <button id="saveBtn" class="btn save-btn" onclick="saveToCloud()">Save to Cloud (Live)</button>
     </div>
 
     <div class="table-box">
@@ -54,102 +47,98 @@
                 <tr>
                     <th>Roll</th><th>Name</th><th>Phone</th><th>Class</th>
                     <th>Apr</th><th>May</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th>
-                    <th id="actHead" style="display:none">Action</th>
                 </tr>
             </thead>
             <tbody id="studentData"></tbody>
-            <tfoot id="totalRow"></tfoot>
         </table>
     </div>
 </div>
 
 <script>
+    // Maine aapka link yahan pehle se daal diya hai
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJnUsOkYbr7u6wS7rL99O3U_tE3X-Uv9G0-uN-yF6kU5-I5E6_zI6eE/exec"; 
+    
     let isAdmin = false;
+    let students = [];
     const months = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"];
-    let students = JSON.parse(localStorage.getItem('pcc_final_sync_v1')) || [];
+
+    async function loadData() {
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const rawData = await response.json();
+            if (rawData.length > 1) {
+                students = rawData.slice(1).map(row => ({
+                    roll: row[0], name: row[1], phone: row[2], class: row[3],
+                    fees: row[4] ? JSON.parse(row[4]) : {}
+                }));
+            }
+            document.getElementById('syncStatus').innerHTML = "<span style='color:green'><i class='fas fa-check-circle'></i> Data Live Hai!</span>";
+            renderTable();
+        } catch (e) {
+            document.getElementById('syncStatus').innerText = "Data Load Ho Raha Hai...";
+        }
+    }
+
+    async function saveToCloud() {
+        const btn = document.getElementById('saveBtn');
+        btn.innerText = "Saving...";
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(students)
+            });
+            alert("Data Google Sheet mein save ho gaya!");
+            btn.innerText = "Save to Cloud (Live)";
+        } catch (e) { alert("Save Error!"); }
+    }
 
     function toggleLogin() {
         if (!isAdmin) {
-            if (prompt("Password:") === "admin123") {
+            if (prompt("Admin Password:") === "admin123") {
                 isAdmin = true;
                 document.getElementById('authBtn').innerText = "Logout";
                 document.getElementById('addBtn').style.display = "inline-block";
-                document.getElementById('actHead').style.display = "table-cell";
+                document.getElementById('saveBtn').style.display = "inline-block";
                 renderTable();
             }
-        } else {
-            isAdmin = false;
-            document.getElementById('authBtn').innerText = "Admin Login";
-            document.getElementById('addBtn').style.display = "none";
-            document.getElementById('actHead').style.display = "none";
-            renderTable();
-        }
+        } else { location.reload(); }
     }
 
     function renderTable() {
         const tbody = document.getElementById('studentData');
         tbody.innerHTML = students.map((s, idx) => `
             <tr>
-                <td>${s.roll}</td>
-                <td><strong>${s.name}</strong></td>
-                <td>${s.phone || '-'}</td>
-                <td>${s.class}</td>
+                <td>${s.roll}</td><td><strong>${s.name}</strong></td><td>${s.phone}</td><td>${s.class}</td>
                 ${months.map(m => {
-                    const f = s.fees[m];
-                    const isPaid = f.status === 'Paid';
-                    const msg = `PCC: Hello ${s.name}, Aapki ${m} ki fee ₹${f.amount} jama ho gayi hai (${f.date}).`;
-                    const waLink = `https://wa.me/91${s.phone}?text=${encodeURIComponent(msg)}`;
-                    
-                    return `<td class="${isPaid ? 'paid' : 'unpaid'}" onclick="handleFeeClick(${idx}, '${m}')" style="cursor:pointer">
-                        <div class="info-box">
-                            <span>${f.status}</span>
-                            ${isPaid ? `<span class="amt-tag">₹${f.amount}</span><span class="date-tag">${f.date}</span>` : ''}
-                            ${isPaid && s.phone ? `<a href="${waLink}" target="_blank" class="wa-link" onclick="event.stopPropagation()"><i class="fab fa-whatsapp"></i></a>` : ''}
-                        </div>
+                    const f = s.fees[m] || {status: 'Unpaid', amount: 0};
+                    return `<td class="${f.status === 'Paid' ? 'paid' : 'unpaid'}" onclick="handleFee(${idx},'${m}')" style="cursor:pointer">
+                        ${f.status}<br><small>${f.amount > 0 ? '₹'+f.amount : ''}</small>
                     </td>`;
                 }).join('')}
-                <td style="display:${isAdmin ? 'table-cell' : 'none'}">
-                    <button onclick="removeStudent(${idx})" style="background:#e53e3e; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer">Del</button>
-                </td>
             </tr>
         `).join('');
-        calculateTotals();
     }
 
-    function handleFeeClick(idx, m) {
-        if (!isAdmin) return alert("Please Login as Admin!");
+    function handleFee(idx, m) {
+        if (!isAdmin) return;
+        if (!students[idx].fees) students[idx].fees = {};
+        if (!students[idx].fees[m]) students[idx].fees[m] = {status: 'Unpaid', amount: 0};
         const f = students[idx].fees[m];
         if (f.status === 'Unpaid') {
-            const amt = prompt(`${students[idx].name} - Amount:`, "500");
-            if (amt) {
-                f.status = 'Paid';
-                f.amount = amt;
-                f.date = new Date().toLocaleDateString('en-GB');
-                save();
-            }
-        } else {
-            if(confirm("Mark as Unpaid?")) {
-                f.status = 'Unpaid'; f.amount = 0; f.date = ''; save();
-            }
-        }
+            const amt = prompt("Amount:", "500");
+            if (amt) { f.status = 'Paid'; f.amount = amt; }
+        } else { f.status = 'Unpaid'; f.amount = 0; }
+        renderTable();
     }
 
     function addNewStudent() {
-        const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("WhatsApp:"), c = prompt("Class:");
-        if (n && r && c) {
-            let f = {}; months.forEach(m => f[m] = {status:'Unpaid', date:'', amount:0});
-            students.push({name:n, roll:r, phone:p, class:c, fees:f});
-            save();
+        const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("Phone:"), c = prompt("Class:");
+        if (n && r) {
+            let f = {}; months.forEach(m => f[m] = {status:'Unpaid', amount:0});
+            students.push({roll:r, name:n, phone:p, class:c, fees:f});
+            renderTable();
         }
-    }
-
-    function calculateTotals() {
-        let h = `<tr class="total-row"><td colspan="4">Monthly Collection (₹):</td>`;
-        months.forEach(m => {
-            const monthlyTotal = students.reduce((sum, s) => sum + Number(s.fees[m].amount || 0), 0);
-            h += `<td>₹${monthlyTotal}</td>`;
-        });
-        document.getElementById('totalRow').innerHTML = h + `</tr>`;
     }
 
     function filterTable() {
@@ -159,33 +148,7 @@
         });
     }
 
-    function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(students));
-        const a = document.createElement('a');
-        a.setAttribute("href", dataStr);
-        a.setAttribute("download", "pcc_backup_" + new Date().toLocaleDateString() + ".json");
-        a.click();
-    }
-
-    function importData() { document.getElementById('fileInput').click(); }
-
-    function processFile(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                students = JSON.parse(event.target.result);
-                save();
-                alert("Data Restore Ho Gaya!");
-            } catch (err) { alert("Invalid File!"); }
-        };
-        reader.readAsText(file);
-    }
-
-    function removeStudent(idx) { if(confirm("Delete Student?")) { students.splice(idx, 1); save(); } }
-    function save() { localStorage.setItem('pcc_final_sync_v1', JSON.stringify(students)); renderTable(); }
-    window.onload = renderTable;
+    window.onload = loadData;
 </script>
 </body>
 </html>
