@@ -29,13 +29,14 @@
         .total-row { background: #1a2a3a !important; color: white; font-weight: bold; position: sticky; bottom: 0; }
         .wa-btn { background: #25D366; color: white; padding: 4px 8px; border-radius: 5px; text-decoration: none; font-size: 11px; display: inline-block; }
         .del-btn { background: var(--danger); color: white; padding: 4px 8px; border-radius: 5px; border: none; font-size: 11px; cursor: pointer; margin-left: 5px; }
+        .edit-btn { background: #9b59b6; color: white; padding: 4px 8px; border-radius: 5px; border: none; font-size: 11px; cursor: pointer; margin-left: 5px; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>Progressive Coaching Classes</h1>
-    <p>Baragain, Ranchi | Student Accounts (Custom Amount)</p>
+    <p>Baragain, Ranchi | Fees & Student Management</p>
 </header>
 
 <div class="container">
@@ -96,6 +97,7 @@
             let rowHtml = `<tr>
                 <td>
                     <a href="https://wa.me/91${s.phone}" target="_blank" class="wa-btn"><i class="fab fa-whatsapp"></i> Chat</a>
+                    ${isAdmin ? `<button class="edit-btn" onclick="editStudent(${idx})"><i class="fas fa-edit"></i></button>` : ''}
                     ${isAdmin ? `<button class="del-btn" onclick="deleteStudent(${idx})"><i class="fas fa-trash"></i></button>` : ''}
                 </td>
                 <td>${s.roll}</td><td><strong>${s.name}</strong></td><td>${s.class}</td>
@@ -117,10 +119,23 @@
     }
 
     function deleteStudent(idx) {
-        if (confirm(`Kya aap sach mein ${students[idx].name} ka data delete karna chahte hain?`)) {
+        if (confirm(`Kya aap sach mein ${students[idx].name} ko delete karna chahte hain?`)) {
             students.splice(idx, 1);
             renderTable();
-            alert("Student list se hat gaya hai. Save & Sync button zaroori dabayein.");
+            alert("Delete ho gaya! 'Save & Sync' dabana na bhulein.");
+        }
+    }
+
+    function editStudent(idx) {
+        const s = students[idx];
+        const newName = prompt("Naya Naam:", s.name);
+        const newFee = prompt("Nayi Yearly Fee:", s.totalFee);
+        const newPhone = prompt("Naya Phone:", s.phone);
+        if (newName && newFee) {
+            students[idx].name = newName;
+            students[idx].totalFee = Number(newFee);
+            students[idx].phone = newPhone;
+            renderTable();
         }
     }
 
@@ -130,14 +145,14 @@
         const f = students[idx].fees[m] || {status: 'Unpaid', amount: 0, date: ''};
         
         if (f.status === 'Unpaid') {
-            const amt = prompt(`${students[idx].name} ki ${m} ki fees amount:`);
+            const amt = prompt(`${students[idx].name} (${m}) Amount:`);
             if (amt !== null && amt !== "" && !isNaN(amt)) {
                 const today = new Date().toLocaleDateString('en-GB');
                 students[idx].fees[m] = { status: 'Paid', amount: Number(amt), date: today };
                 renderTable();
             }
         } else {
-            if(confirm("Reset to Unpaid?")) {
+            if(confirm("Wapas Unpaid karein?")) {
                 students[idx].fees[m] = { status: 'Unpaid', amount: 0, date: '' };
                 renderTable();
             }
@@ -158,7 +173,7 @@
         btn.innerHTML = "Saving...";
         try {
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(students) });
-            alert("Data saved successfully!");
+            alert("Safe! Data Google Sheet mein chala gaya.");
             btn.innerHTML = "Save & Sync";
         } catch (e) { alert("Save Error!"); }
     }
@@ -175,7 +190,7 @@
     }
 
     function addNewStudent() {
-        const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("Phone:"), c = prompt("Class:"), tf = prompt("Yearly Total Fee:", "6000");
+        const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("Phone:"), c = prompt("Class:"), tf = prompt("Yearly Fee:", "6000");
         if (n && r) { 
             students.push({roll:r, name:n, phone:p, class:c, totalFee: Number(tf), fees:{}}); 
             renderTable(); 
