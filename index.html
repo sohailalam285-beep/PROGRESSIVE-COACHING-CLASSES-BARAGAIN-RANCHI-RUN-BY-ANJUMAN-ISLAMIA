@@ -6,7 +6,7 @@
     <title>PCC Baragain - Smart Accounts</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #1a2a3a; --accent: #3498db; --success: #27ae60; }
+        :root { --primary: #1a2a3a; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; }
         header { background: var(--primary); color: white; padding: 15px; text-align: center; border-bottom: 5px solid var(--accent); }
         .container { padding: 10px; max-width: 99%; margin: 10px auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -25,9 +25,10 @@
         .unpaid-cell { background: #fff5f5; color: #c53030; }
         .account-box { background: #ebf4ff; font-weight: bold; color: #2b6cb0; }
         .balance-box { background: #fffaf0; color: #9c4221; font-weight: bold; }
-        .date-badge { font-size: 9px; color: #7f8c8d; display: block; margin-top: 3px; font-weight: normal; }
+        .date-badge { font-size: 9px; color: #7f8c8d; display: block; margin-top: 3px; }
         .total-row { background: #1a2a3a !important; color: white; font-weight: bold; position: sticky; bottom: 0; }
-        .wa-btn { background: #25D366; color: white; padding: 5px 8px; border-radius: 5px; text-decoration: none; font-size: 11px; }
+        .wa-btn { background: #25D366; color: white; padding: 4px 8px; border-radius: 5px; text-decoration: none; font-size: 11px; display: inline-block; }
+        .del-btn { background: var(--danger); color: white; padding: 4px 8px; border-radius: 5px; border: none; font-size: 11px; cursor: pointer; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -93,10 +94,13 @@
             let balance = s.totalFee - paidSum;
             
             let rowHtml = `<tr>
-                <td><a href="https://wa.me/91${s.phone}" target="_blank" class="wa-btn"><i class="fab fa-whatsapp"></i> Chat</a></td>
+                <td>
+                    <a href="https://wa.me/91${s.phone}" target="_blank" class="wa-btn"><i class="fab fa-whatsapp"></i> Chat</a>
+                    ${isAdmin ? `<button class="del-btn" onclick="deleteStudent(${idx})"><i class="fas fa-trash"></i></button>` : ''}
+                </td>
                 <td>${s.roll}</td><td><strong>${s.name}</strong></td><td>${s.class}</td>
                 <td class="account-box">₹${s.totalFee}</td>
-                <td class="paid-cell" style="font-size:14px">₹${paidSum}</td>
+                <td class="paid-cell">₹${paidSum}</td>
                 <td class="balance-box">₹${balance}</td>`;
             
             months.forEach(m => {
@@ -112,36 +116,36 @@
         updateTotals();
     }
 
+    function deleteStudent(idx) {
+        if (confirm(`Kya aap sach mein ${students[idx].name} ka data delete karna chahte hain?`)) {
+            students.splice(idx, 1);
+            renderTable();
+            alert("Student list se hat gaya hai. Save & Sync button zaroori dabayein.");
+        }
+    }
+
     function handleFee(idx, m) {
         if (!isAdmin) return;
         if (!students[idx].fees) students[idx].fees = {};
         const f = students[idx].fees[m] || {status: 'Unpaid', amount: 0, date: ''};
         
         if (f.status === 'Unpaid') {
-            // Yahan ab blank box aayega, aap kuch bhi amount daal sakte hain
-            const amt = prompt(`${students[idx].name} ki ${m} mahine ki fees kitni jama karni hai? (Amount daalein)`);
-            
+            const amt = prompt(`${students[idx].name} ki ${m} ki fees amount:`);
             if (amt !== null && amt !== "" && !isNaN(amt)) {
                 const today = new Date().toLocaleDateString('en-GB');
                 students[idx].fees[m] = { status: 'Paid', amount: Number(amt), date: today };
-                
-                let currentPaid = months.reduce((sum, mon) => sum + (Number(students[idx].fees[mon]?.amount) || 0), 0);
-                
-                if(confirm("WhatsApp receipt bhejrein?")) {
-                    const msg = `*PCC Baragain - Receipt*\n\nStudent: ${students[idx].name}\nMonth: ${m}\nPaid: ₹${amt}\nTotal Paid: ₹${currentPaid}\nBalance: ₹${students[idx].totalFee - currentPaid}\nDate: ${today}\nStatus: RECEIVED ✔`;
-                    window.open(`https://wa.me/91${students[idx].phone}?text=${encodeURIComponent(msg)}`, '_blank');
-                }
+                renderTable();
             }
         } else {
-            if(confirm("Kya aap ise wapas UNPAID karna chahte hain?")) {
+            if(confirm("Reset to Unpaid?")) {
                 students[idx].fees[m] = { status: 'Unpaid', amount: 0, date: '' };
+                renderTable();
             }
         }
-        renderTable();
     }
 
     function updateTotals() {
-        let html = `<tr class="total-row"><td colspan="7">MONTHLY COLLECTION SUMMARY</td>`;
+        let html = `<tr class="total-row"><td colspan="7">MONTHLY COLLECTION</td>`;
         months.forEach(m => {
             let colSum = students.reduce((sum, s) => sum + (Number(s.fees[m]?.amount) || 0), 0);
             html += `<td>₹${colSum}</td>`;
@@ -156,7 +160,7 @@
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(students) });
             alert("Data saved successfully!");
             btn.innerHTML = "Save & Sync";
-        } catch (e) { alert("Save Error! Try again."); }
+        } catch (e) { alert("Save Error!"); }
     }
 
     function toggleLogin() {
@@ -171,7 +175,7 @@
     }
 
     function addNewStudent() {
-        const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("Phone:"), c = prompt("Class:"), tf = prompt("Total Account Value (Yearly Fee):", "6000");
+        const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("Phone:"), c = prompt("Class:"), tf = prompt("Yearly Total Fee:", "6000");
         if (n && r) { 
             students.push({roll:r, name:n, phone:p, class:c, totalFee: Number(tf), fees:{}}); 
             renderTable(); 
