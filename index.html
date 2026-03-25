@@ -3,49 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCC Baragain - Smart Cloud System</title>
+    <title>PCC Baragain - Smart Accounts</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a2a3a; --accent: #3498db; --success: #27ae60; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; }
-        header { background: var(--primary); color: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--accent); }
-        .container { padding: 10px; max-width: 98%; margin: 10px auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 220px; }
-        .btn { padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 5px; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; border-bottom: 5px solid var(--accent); }
+        .container { padding: 10px; max-width: 99%; margin: 10px auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; width: 180px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 5px; }
         .login-btn { background: #34495e; }
         .add-btn { background: var(--success); display: none; }
         .save-btn { background: #e67e22; display: none; }
-        .sync-status { text-align: center; font-size: 13px; margin-bottom: 10px; font-weight: bold; color: #7f8c8d; }
-        .table-box { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; height: 500px; }
-        table { width: 100%; border-collapse: collapse; min-width: 1500px; }
-        th { background: #f8f9fa; position: sticky; top: 0; z-index: 10; padding: 12px; border: 1px solid #eee; }
-        td { border: 1px solid #eee; padding: 8px; text-align: center; font-size: 13px; }
-        .paid { background: #e6fffa; color: #2c7a7b; font-weight: bold; }
-        .unpaid { background: #fff5f5; color: #c53030; }
-        .date-badge { font-size: 9px; color: #555; display: block; background: #eee; border-radius: 4px; margin-top: 3px; }
+        .sync-status { text-align: center; font-size: 13px; margin-bottom: 10px; font-weight: bold; }
+        .table-box { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; height: 600px; }
+        table { width: 100%; border-collapse: collapse; min-width: 2200px; }
+        th { background: #f8f9fa; position: sticky; top: 0; z-index: 10; padding: 12px; border: 1px solid #eee; font-size: 13px; }
+        td { border: 1px solid #eee; padding: 8px; text-align: center; font-size: 12px; }
+        .paid-cell { background: #e6fffa; color: #2c7a7b; font-weight: bold; border-left: 3px solid #27ae60 !important; }
+        .unpaid-cell { background: #fff5f5; color: #c53030; }
+        .account-box { background: #ebf4ff; font-weight: bold; color: #2b6cb0; }
+        .balance-box { background: #fffaf0; color: #9c4221; font-weight: bold; }
+        .date-badge { font-size: 9px; color: #7f8c8d; display: block; margin-top: 3px; font-weight: normal; }
         .total-row { background: #1a2a3a !important; color: white; font-weight: bold; position: sticky; bottom: 0; }
-        .wa-btn { background: #25D366; color: white; padding: 4px 8px; border-radius: 5px; text-decoration: none; font-size: 11px; }
+        .wa-btn { background: #25D366; color: white; padding: 5px 8px; border-radius: 5px; text-decoration: none; font-size: 11px; }
     </style>
 </head>
 <body>
+
 <header>
     <h1>Progressive Coaching Classes</h1>
-    <p>Baragain, Ranchi | Smart Cloud System</p>
+    <p>Baragain, Ranchi | Student Accounts (Custom Amount)</p>
 </header>
+
 <div class="container">
-    <div id="syncStatus" class="sync-status">🔄 Connecting to Cloud...</div>
+    <div id="syncStatus" class="sync-status">🔄 Connecting...</div>
     <div class="controls">
         <button id="authBtn" class="btn login-btn" onclick="toggleLogin()"><i class="fas fa-lock"></i> Admin Login</button>
-        <input type="text" id="searchBox" onkeyup="filterTable()" placeholder="Roll ya Name search karein...">
-        <button id="addBtn" class="btn add-btn" onclick="addNewStudent()"><i class="fas fa-plus"></i> Naya Student</button>
-        <button id="saveBtn" class="btn save-btn" onclick="saveToCloud()"><i class="fas fa-cloud-upload-alt"></i> Save & Sync</button>
+        <input type="text" id="searchBox" onkeyup="filterTable()" placeholder="Search Name/Roll...">
+        <button id="addBtn" class="btn add-btn" onclick="addNewStudent()"><i class="fas fa-user-plus"></i> Add Student</button>
+        <button id="saveBtn" class="btn save-btn" onclick="saveToCloud()"><i class="fas fa-save"></i> Save & Sync</button>
     </div>
+
     <div class="table-box">
         <table>
             <thead>
                 <tr>
-                    <th>Action</th><th>Roll</th><th>Name</th><th>Phone</th><th>Class</th>
+                    <th>Action</th><th>Roll</th><th>Name</th><th>Class</th>
+                    <th style="background:#edf2f7">Yearly Fee</th>
+                    <th style="background:#e6fffa">Total Paid</th>
+                    <th style="background:#fffaf0">Due Balance</th>
                     <th>Apr</th><th>May</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th>
                 </tr>
             </thead>
@@ -54,11 +62,14 @@
         </table>
     </div>
 </div>
+
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJnUsOkYbr7u6wS7rL99O3U_tE3X-Uv9G0-uN-yF6kU5-I5E6_zI6eE/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzS7COvAmzH9Z7Y1S8BtvfP5j_K8buk44bKu6FaUw-3odVbSdD3XGNVJOvLktKRyzUtpA/exec"; 
+    
     let isAdmin = false;
     let students = [];
     const months = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar"];
+
     async function loadData() {
         try {
             const response = await fetch(SCRIPT_URL);
@@ -66,23 +77,33 @@
             if (rawData.length > 1) {
                 students = rawData.slice(1).map(row => ({
                     roll: row[0], name: row[1], phone: row[2], class: row[3],
+                    totalFee: Number(row[5]) || 0,
                     fees: row[4] ? JSON.parse(row[4]) : {}
                 }));
             }
-            document.getElementById('syncStatus').innerHTML = "<span style='color:green'>● Live (Cloud Connected)</span>";
+            document.getElementById('syncStatus').innerHTML = "<span style='color:green'>● Connected</span>";
             renderTable();
-        } catch (e) { document.getElementById('syncStatus').innerText = "❌ Offline/Error"; }
+        } catch (e) { document.getElementById('syncStatus').innerHTML = "<span style='color:red'>❌ Error</span>"; }
     }
+
     function renderTable() {
         const tbody = document.getElementById('studentData');
         tbody.innerHTML = students.map((s, idx) => {
+            let paidSum = months.reduce((sum, m) => sum + (Number(s.fees[m]?.amount) || 0), 0);
+            let balance = s.totalFee - paidSum;
+            
             let rowHtml = `<tr>
-                <td><a href="https://wa.me/91${s.phone}?text=${encodeURIComponent('PCC Baragain: Student '+s.name+' ki fees update ho gayi hai.')}" target="_blank" class="wa-btn"><i class="fab fa-whatsapp"></i> Notify</a></td>
-                <td>${s.roll}</td><td><strong>${s.name}</strong></td><td>${s.phone}</td><td>${s.class}</td>`;
+                <td><a href="https://wa.me/91${s.phone}" target="_blank" class="wa-btn"><i class="fab fa-whatsapp"></i> Chat</a></td>
+                <td>${s.roll}</td><td><strong>${s.name}</strong></td><td>${s.class}</td>
+                <td class="account-box">₹${s.totalFee}</td>
+                <td class="paid-cell" style="font-size:14px">₹${paidSum}</td>
+                <td class="balance-box">₹${balance}</td>`;
+            
             months.forEach(m => {
                 const f = s.fees[m] || {status: 'Unpaid', amount: 0, date: ''};
-                rowHtml += `<td class="${f.status === 'Paid' ? 'paid' : 'unpaid'}" onclick="handleFee(${idx},'${m}')" style="cursor:pointer">
-                    ${f.status}<br>${f.amount > 0 ? '₹'+f.amount : ''}
+                rowHtml += `<td class="${f.status === 'Paid' ? 'paid-cell' : 'unpaid-cell'}" onclick="handleFee(${idx},'${m}')" style="cursor:pointer">
+                    ${f.status === 'Paid' ? 'PAID ✔' : 'UNPAID ❌'}<br>
+                    ${f.amount > 0 ? '₹'+f.amount : ''}
                     ${f.date ? `<span class="date-badge">${f.date}</span>` : ''}
                 </td>`;
             });
@@ -90,66 +111,80 @@
         }).join('');
         updateTotals();
     }
+
     function handleFee(idx, m) {
         if (!isAdmin) return;
         if (!students[idx].fees) students[idx].fees = {};
         const f = students[idx].fees[m] || {status: 'Unpaid', amount: 0, date: ''};
+        
         if (f.status === 'Unpaid') {
-            const amt = prompt("Fees Amount daalein:", "500");
-            if (amt) {
+            // Yahan ab blank box aayega, aap kuch bhi amount daal sakte hain
+            const amt = prompt(`${students[idx].name} ki ${m} mahine ki fees kitni jama karni hai? (Amount daalein)`);
+            
+            if (amt !== null && amt !== "" && !isNaN(amt)) {
                 const today = new Date().toLocaleDateString('en-GB');
                 students[idx].fees[m] = { status: 'Paid', amount: Number(amt), date: today };
-                if(confirm("WhatsApp par notification bhejrein?")) {
-                    const msg = `PCC Baragain: Dear Parent, Student ${students[idx].name} ki ${m} mahine ki fees ₹${amt} jama ho gayi hai. Date: ${today}. Shukriya!`;
+                
+                let currentPaid = months.reduce((sum, mon) => sum + (Number(students[idx].fees[mon]?.amount) || 0), 0);
+                
+                if(confirm("WhatsApp receipt bhejrein?")) {
+                    const msg = `*PCC Baragain - Receipt*\n\nStudent: ${students[idx].name}\nMonth: ${m}\nPaid: ₹${amt}\nTotal Paid: ₹${currentPaid}\nBalance: ₹${students[idx].totalFee - currentPaid}\nDate: ${today}\nStatus: RECEIVED ✔`;
                     window.open(`https://wa.me/91${students[idx].phone}?text=${encodeURIComponent(msg)}`, '_blank');
                 }
             }
         } else {
-            if(confirm("Ise wapas Unpaid karein?")) students[idx].fees[m] = { status: 'Unpaid', amount: 0, date: '' };
+            if(confirm("Kya aap ise wapas UNPAID karna chahte hain?")) {
+                students[idx].fees[m] = { status: 'Unpaid', amount: 0, date: '' };
+            }
         }
         renderTable();
     }
+
     function updateTotals() {
-        let html = `<tr class="total-row"><td colspan="5">MONTHLY TOTAL COLLECTION</td>`;
+        let html = `<tr class="total-row"><td colspan="7">MONTHLY COLLECTION SUMMARY</td>`;
         months.forEach(m => {
-            let colTotal = students.reduce((sum, s) => sum + (s.fees[m]?.amount || 0), 0);
-            html += `<td>₹${colTotal}</td>`;
+            let colSum = students.reduce((sum, s) => sum + (Number(s.fees[m]?.amount) || 0), 0);
+            html += `<td>₹${colSum}</td>`;
         });
         document.getElementById('totalRow').innerHTML = html + `</tr>`;
     }
+
     async function saveToCloud() {
         const btn = document.getElementById('saveBtn');
-        btn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Saving...";
+        btn.innerHTML = "Saving...";
         try {
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(students) });
-            alert("Mubarak! Data Google Sheet mein save ho gaya.");
-            btn.innerHTML = "<i class='fas fa-cloud-upload-alt'></i> Save & Sync";
-        } catch (e) { alert("Save Failed! Net check karein."); }
+            alert("Data saved successfully!");
+            btn.innerHTML = "Save & Sync";
+        } catch (e) { alert("Save Error! Try again."); }
     }
+
     function toggleLogin() {
         if (!isAdmin) {
-            if (prompt("Admin Password daalein:") === "admin123") {
+            if (prompt("Admin Password:") === "admin123") {
                 isAdmin = true;
-                document.getElementById('authBtn').innerHTML = "<i class='fas fa-sign-out-alt'></i> Logout";
                 document.getElementById('addBtn').style.display = "inline-block";
                 document.getElementById('saveBtn').style.display = "inline-block";
                 renderTable();
             }
         } else { location.reload(); }
     }
+
     function addNewStudent() {
-        const n = prompt("Bache ka Naam:"), r = prompt("Roll No:"), p = prompt("Phone (WhatsApp):"), c = prompt("Class:");
-        if (n && r) {
-            students.push({roll:r, name:n, phone:p, class:c, fees:{}});
-            renderTable();
+        const n = prompt("Name:"), r = prompt("Roll:"), p = prompt("Phone:"), c = prompt("Class:"), tf = prompt("Total Account Value (Yearly Fee):", "6000");
+        if (n && r) { 
+            students.push({roll:r, name:n, phone:p, class:c, totalFee: Number(tf), fees:{}}); 
+            renderTable(); 
         }
     }
+
     function filterTable() {
         const val = document.getElementById('searchBox').value.toLowerCase();
         document.querySelectorAll('#studentData tr').forEach(row => {
             row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none';
         });
     }
+
     window.onload = loadData;
 </script>
 </body>
